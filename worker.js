@@ -11,7 +11,7 @@
  
 const PRICE_ID = "price_1UDOExDgfZTUGc5KxMifklMJ";
 const COOKIE_NAME = "saxroll_session";
-const SESSION_DAYS = 30;
+const SESSION_DAYS = 7; // matches the weekly billing cycle — see note below
  
 export default {
   async fetch(request, env, ctx) {
@@ -267,4 +267,3 @@ function landingPage() {
 </body>
 </html>`;
 }
- 
