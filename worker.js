@@ -208,13 +208,28 @@ function landingPage() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sax Roll</title>
+<title>Sax Roll — Play Along on Alto Sax Without Reading Sheet Music</title>
+<meta name="description" content="Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide, timed to the music — see exactly which keys to press for any song on alto sax, no sheet-music reading required.">
+<link rel="canonical" href="https://saxroll.com/">
+ 
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://saxroll.com/">
+<meta property="og:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
+<meta property="og:description" content="Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide, timed to the music — see exactly which keys to press for any song on alto sax.">
+ 
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
+<meta name="twitter:description" content="Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide, timed to the music — see exactly which keys to press for any song on alto sax.">
+ 
 <style>
   body{margin:0;background:#10161C;color:#EFE9DD;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
-  .box{max-width:420px;width:100%;}
-  h1{font-family:Georgia,serif;font-size:32px;margin:0 0 10px;}
+  .box{max-width:460px;width:100%;}
+  h1{font-family:Georgia,serif;font-size:32px;margin:0 0 6px;}
   h1 em{color:#D9A24B;font-style:italic;}
-  p{color:#9BA8B2;font-size:14px;line-height:1.6;}
+  .tagline{color:#EFE9DD;font-size:15px;margin:0 0 14px;font-weight:600;}
+  p{color:#9BA8B2;font-size:13.5px;line-height:1.65;}
+  ul{color:#9BA8B2;font-size:13.5px;line-height:1.75;margin:12px 0;padding-left:20px;}
+  li{margin-bottom:2px;}
   button{width:100%;background:#D9A24B;color:#20150A;border:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;margin-top:8px;}
   button.secondary{background:transparent;border:1px solid #2B3641;color:#EFE9DD;}
   input{width:100%;background:#0E141A;border:1px solid #2B3641;border-radius:8px;color:#EFE9DD;padding:11px;font-family:inherit;font-size:14px;box-sizing:border-box;margin-top:14px;}
@@ -225,7 +240,13 @@ function landingPage() {
 <body>
 <div class="box">
   <h1>Sax <em>Roll</em></h1>
-  <p>Upload a MusicXML file and follow the fingering roll, timed to the music. Subscribe to get access.</p>
+  <p class="tagline">Learn songs on alto sax without reading sheet music.</p>
+  <p>Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide — colored bars show exactly which keys to press, timed to the actual music, so you can play along with real songs from day one.</p>
+  <ul>
+    <li>Works with any song you have as MusicXML — pop, jazz, classical</li>
+    <li>Slow the tempo down to isolate tricky passages</li>
+    <li>Shows trills and extended-range fingerings, not just the basics</li>
+  </ul>
   <button id="subscribeBtn">Subscribe — $1.99/week</button>
   <div class="divider">— already subscribed? —</div>
   <input id="emailInput" type="email" placeholder="you@example.com">
