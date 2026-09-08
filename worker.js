@@ -208,7 +208,7 @@ function landingPage() {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sax Highway</title>
+<title>Sax Roll</title>
 <style>
   body{margin:0;background:#10161C;color:#EFE9DD;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
   .box{max-width:420px;width:100%;}
@@ -224,7 +224,7 @@ function landingPage() {
 </head>
 <body>
 <div class="box">
-  <h1>Sax <em>Highway</em></h1>
+  <h1>Sax <em>Roll</em></h1>
   <p>Upload a MusicXML file and follow the fingering roll, timed to the music. Subscribe to get access.</p>
   <button id="subscribeBtn">Subscribe — $1.99/week</button>
   <div class="divider">— already subscribed? —</div>
