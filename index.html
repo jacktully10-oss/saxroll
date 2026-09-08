@@ -33,7 +33,7 @@
   .wrap{max-width:1180px;margin:0 auto;padding:0 18px;}
 
   header.top{
-    padding:28px 18px 18px;
+    padding:14px 18px 10px;
     background:
       radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35) 0, transparent 60%),
       radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,.25) 0, transparent 60%),
@@ -44,12 +44,12 @@
     border-bottom:1px solid var(--line);
   }
   header.top .inner{max-width:820px;margin:0 auto;}
-  header.top h1{font-size:28px;color:var(--ink);letter-spacing:.2px;}
+  header.top h1{font-size:20px;color:var(--ink);letter-spacing:.2px;}
   header.top h1 em{font-style:italic;color:var(--brass);}
-  header.top p{color:var(--ink-dim);font-size:13.5px;line-height:1.6;margin-top:8px;max-width:60ch;}
+  header.top p{color:var(--ink-dim);font-size:12px;line-height:1.4;margin-top:3px;max-width:60ch;}
 
   .highway-shell{
-    margin-top:22px;
+    margin-top:12px;
     background: linear-gradient(180deg, #0B0F14 0%, #0E141A 100%);
     border:1px solid var(--line);
     border-radius:14px;
@@ -58,7 +58,7 @@
   }
   .highway-controls{
     display:flex; align-items:center; justify-content:space-between; gap:10px;
-    margin-top:20px; flex-wrap:wrap;
+    margin-top:10px; flex-wrap:wrap;
   }
   details.key-guide{ font-size:12.5px; flex:1; min-width:0; }
   details.key-guide summary{
@@ -106,6 +106,28 @@
     margin:12px 0 0; font-size:11px; color:var(--ink-dim); line-height:1.6;
   }
 
+  .disclaimer{
+    background:rgba(232,99,122,.08); border:1px solid rgba(232,99,122,.35);
+    border-radius:8px; padding:10px 14px; margin:0 0 12px;
+    font-size:13px; line-height:1.6; color:var(--ink);
+  }
+  .disclaimer strong{ color:#F0A0AE; }
+  .file-help{ margin:0 0 14px; }
+  .file-help summary{
+    cursor:pointer; color:var(--brass); font-size:13px; font-weight:600;
+    padding:2px 0;
+  }
+  .file-help-body{
+    margin-top:10px; padding:14px 16px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  }
+  .file-help-body p{ margin:0 0 10px; font-size:13px; line-height:1.6; color:var(--ink-dim); }
+  .file-help-body p:last-of-type{ margin-bottom:0; }
+  .file-help-body ol{ margin:0 0 10px; padding-left:20px; }
+  .file-help-body li{ font-size:13px; line-height:1.7; color:var(--ink-dim); margin-bottom:4px; }
+  .file-help-body strong{ color:var(--ink); }
+  .file-help-note{ font-size:11.5px !important; font-style:italic; }
+
   body.is-fullscreen header.top,
   body.is-fullscreen section,
   body.is-fullscreen .highway-controls,
@@ -151,7 +173,11 @@
     background:linear-gradient(180deg, transparent, rgba(217,162,75,.7), transparent);
     z-index:5;
   }
-  .lanes{position:relative; padding:14px 0; overflow-y:auto; max-height:55vh;}
+  .lanes{
+    position:relative; padding:14px 0; overflow:hidden;
+    height:calc(100vh - 320px); max-height:calc(100vh - 320px); min-height:220px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
   .open-note-window{
     position:absolute; top:0; bottom:0; left:92px; right:0;
     overflow:hidden;
@@ -171,7 +197,8 @@
   }
   .lane{
     position:relative;
-    height:30px;
+    flex:0 1 30px;
+    min-height:0;
     margin:4px 0;
     display:flex;
     align-items:center;
@@ -302,7 +329,7 @@
 <header class="top">
   <div class="inner">
     <h1>Sax <em>Highway</em></h1>
-    <p>Upload a MusicXML file and watch the fingering roll toward you, timed to the music — so you can learn a song on alto sax without reading a single note of sheet music. The highway only shows the extra key rows (palm keys, low keys, side keys) when a song actually needs them.</p>
+    <p>Upload a MusicXML file and follow the fingering roll, timed to the music.</p>
   </div>
 </header>
 
@@ -403,7 +430,24 @@
   <section>
     <div class="card">
       <h2>1. Load a song</h2>
-      <p>Works best with a <strong>MusicXML</strong> file (.xml / .musicxml) — export one from MuseScore, Flat.io, Finale, or Soundslice. Most of those tools can import a PDF for you and re-export as MusicXML, which is more reliable than any automatic PDF reading.</p>
+      <p class="disclaimer"><strong>⚠ This only reads MusicXML files</strong> (.xml, .musicxml, or .mxl) — not PDFs, images, or scanned sheet music. A PDF's notes are pixels, not data, so there's nothing here to parse directly.</p>
+      <details class="file-help">
+        <summary>Where do I get a MusicXML file?</summary>
+        <div class="file-help-body">
+          <p><strong>If it's already digital sheet music</strong> — from MuseScore, Finale, Sibelius, Dorico, Flat.io, or Soundslice, just export/download it as MusicXML from whichever of those made it.</p>
+          <p><strong>Free scores:</strong> <a href="https://musescore.com" target="_blank" rel="noopener">musescore.com</a> (huge community library, most scores downloadable as MusicXML), <a href="https://musopen.org" target="_blank" rel="noopener">musopen.org</a> (public-domain classical), and <a href="https://flat.io" target="_blank" rel="noopener">flat.io</a> all offer direct MusicXML downloads.</p>
+          <p><strong>If all you have is a PDF</strong> (bought sheet music, a scan, IMSLP, etc.), convert it first:</p>
+          <ol>
+            <li>Download <strong>MuseScore 4</strong> (free) from <a href="https://musescore.org" target="_blank" rel="noopener">musescore.org</a> — desktop app, not the mobile app or website.</li>
+            <li>Open it, then <strong>File → Import PDF...</strong> (a separate option from regular "Open" — this is the one that reads the PDF into notes).</li>
+            <li>Wait for it to process. It'll open as an actual editable score, not a picture.</li>
+            <li>Skim it against the original PDF and fix any notes/rhythms it misread — automatic reading isn't perfect, especially in busy measures.</li>
+            <li><strong>File → Export...</strong>, set the format dropdown to <strong>MusicXML</strong> (not PDF, which is the default), and save.</li>
+            <li>Upload that exported file here.</li>
+          </ol>
+          <p class="file-help-note">This whole process is for your own copy of music you already own or have rights to use — same as using a fingering chart alongside any sheet music.</p>
+        </div>
+      </details>
       <div class="controls">
         <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl,.pdf">
         <button class="secondary" id="demoBtn" type="button">Try a demo (Ode to Joy)</button>
@@ -411,17 +455,6 @@
         <button class="secondary" id="demoBtn3" type="button">Try a demo with a trill</button>
       </div>
       <div class="status" id="status"></div>
-    </div>
-
-    <div class="card">
-      <h2>Saved songs</h2>
-      <p>Save a loaded song here so you don't need to re-upload the file next time. Saved on this device, in this browser only.</p>
-      <div class="controls">
-        <input type="text" id="saveNameInput" placeholder="Name this song…" disabled style="flex:1; min-width:160px; background:#0E141A;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:9px 12px;font-family:inherit;font-size:13px;">
-        <button class="secondary" id="saveSongBtn" type="button" disabled>💾 Save current song</button>
-      </div>
-      <div id="savedSongsList" class="saved-list"></div>
-      <div class="status" id="saveStatus"></div>
     </div>
 
     <div class="card">
@@ -445,6 +478,17 @@
         <input type="range" id="scrub" class="scrub" min="0" max="1000" value="0" disabled>
         <span class="time" id="timeLabel">0:00 / 0:00</span>
       </div>
+    </div>
+
+    <div class="card">
+      <h2>Saved songs</h2>
+      <p>Save a loaded song here so you don't need to re-upload the file next time. Saved on this device, in this browser only.</p>
+      <div class="controls">
+        <input type="text" id="saveNameInput" placeholder="Name this song…" disabled style="flex:1; min-width:160px; background:#0E141A;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:9px 12px;font-family:inherit;font-size:13px;">
+        <button class="secondary" id="saveSongBtn" type="button" disabled>💾 Save current song</button>
+      </div>
+      <div id="savedSongsList" class="saved-list"></div>
+      <div class="status" id="saveStatus"></div>
     </div>
 
     <div class="card">
@@ -537,18 +581,18 @@ function getFingering(key){
   return { keys: [], adjusted: false, resolvedKey: key, missing: true };
 }
 
-// Trills alternate rapidly between the written note and its upper neighbor. We don't have
-// key-signature context to know for certain whether that neighbor is a half or whole step up,
-// so this assumes a whole step (the far more common case) — flagged to the player as an estimate.
-function getTrillInfo(baseKey){
-  const baseMidi = keyToMidi(baseKey);
-  const target = midiToName(baseMidi + 2);
+// Trills alternate rapidly between the written note and a neighbor. When the file gives us
+// an explicit target (measured tremolo between two written pitches), we use that directly —
+// otherwise we assume a whole step up (the far more common case for a plain trill-mark),
+// flagged to the player as an estimate.
+function getTrillInfo(baseKey, explicitTargetKey){
+  const targetKey = explicitTargetKey || midiToName(keyToMidi(baseKey) + 2).key;
   const baseFingering = new Set(getFingering(baseKey).keys);
-  const targetFingering = new Set(getFingering(target.key).keys);
+  const targetFingering = new Set(getFingering(targetKey).keys);
   const toggleKeys = new Set();
   baseFingering.forEach(k => { if (!targetFingering.has(k)) toggleKeys.add(k); });
   targetFingering.forEach(k => { if (!baseFingering.has(k)) toggleKeys.add(k); });
-  return { targetKey: target.key, baseFingering, targetFingering, toggleKeys };
+  return { targetKey, baseFingering, targetFingering, toggleKeys, explicit: !!explicitTargetKey };
 }
 
 function midiToName(midi){
@@ -571,6 +615,7 @@ function parseMusicXML(xmlText){
   let tempo = 100;
   let cursor = 0;
   let trillActive = false;
+  let pendingTremolo = null;
   const events = [];
 
   const measures = part.querySelectorAll('measure');
@@ -619,18 +664,34 @@ function parseMusicXML(xmlText){
             const octave = parseInt(pitchEl.querySelector('octave').textContent,10);
             const midi = (octave+1)*12 + STEP_SEMITONE[step] + alter;
             const {key} = midiToName(midi);
+            const noteStart = Math.max(cursor,0);
+            const noteDur = Math.max(durSec, 0.05);
 
-            // Trills: a <trill-mark/> on this note, or being inside a <wavy-line> start/stop span,
-            // both mean the player alternates rapidly with the neighbor note for this duration.
             const ornaments = el.querySelector('notations > ornaments');
-            const hasTrillMark = !!(ornaments && ornaments.querySelector('trill-mark'));
-            const wavyStart = ornaments && ornaments.querySelector('wavy-line[type="start"]');
-            const wavyStop = ornaments && ornaments.querySelector('wavy-line[type="stop"]');
-            if (wavyStart) trillActive = true;
-            const isTrill = hasTrillMark || trillActive;
-            if (wavyStop) trillActive = false;
 
-            events.push({ key, start: Math.max(cursor,0), dur: Math.max(durSec, 0.05), trill: isTrill });
+            // Measured tremolo between two different written pitches (<tremolo type="start/stop">)
+            // is rapid alternation with an EXPLICIT target note — more reliable than guessing, so
+            // it's handled separately from trill-mark/wavy-line: the two notes merge into one
+            // event spanning both, using the second note's actual pitch as the trill target.
+            const tremoloEl = ornaments && ornaments.querySelector('tremolo');
+            const tremoloType = tremoloEl && tremoloEl.getAttribute('type');
+            if (tremoloType === 'start') {
+              pendingTremolo = { key, start: noteStart, dur: noteDur };
+            } else if (tremoloType === 'stop' && pendingTremolo) {
+              const mergedDur = (noteStart + noteDur) - pendingTremolo.start;
+              events.push({ key: pendingTremolo.key, start: pendingTremolo.start, dur: mergedDur, trill: true, trillTarget: key });
+              pendingTremolo = null;
+            } else {
+              // Trills: a <trill-mark/> on this note, or being inside a <wavy-line> start/stop
+              // span, both mean the player alternates rapidly with the neighbor note.
+              const hasTrillMark = !!(ornaments && ornaments.querySelector('trill-mark'));
+              const wavyStart = ornaments && ornaments.querySelector('wavy-line[type="start"]');
+              const wavyStop = ornaments && ornaments.querySelector('wavy-line[type="stop"]');
+              if (wavyStart) trillActive = true;
+              const isTrill = hasTrillMark || trillActive;
+              if (wavyStop) trillActive = false;
+              events.push({ key, start: noteStart, dur: noteDur, trill: isTrill });
+            }
           }
         }
         cursor += durSec;
@@ -638,6 +699,10 @@ function parseMusicXML(xmlText){
     });
   });
 
+  if (pendingTremolo) {
+    events.push({ key: pendingTremolo.key, start: pendingTremolo.start, dur: pendingTremolo.dur, trill: false });
+  }
+  events.sort((a,b)=> a.start - b.start);
   if (!events.length) throw new Error('No notes found in that file.');
   return { events, tempo };
 }
@@ -746,7 +811,7 @@ function usedAuxKeys(){
   events.forEach(ev=>{
     getFingering(ev.key).keys.forEach(k=>{ if (AUX_META[k]) set.add(k); });
     if (ev.trill) {
-      getTrillInfo(ev.key).targetFingering.forEach(k=>{ if (AUX_META[k]) set.add(k); });
+      getTrillInfo(ev.key, ev.trillTarget).targetFingering.forEach(k=>{ if (AUX_META[k]) set.add(k); });
     }
   });
   // stable order: grouped, then alphabetical within group
@@ -833,7 +898,7 @@ function buildBars(){
   let barCount = 0;
   events.forEach(ev=>{
     if (ev.trill) {
-      const trillInfo = getTrillInfo(ev.key);
+      const trillInfo = getTrillInfo(ev.key, ev.trillTarget);
       const allKeys = new Set([...trillInfo.baseFingering, ...trillInfo.targetFingering]);
       if (allKeys.size === 0) {
         const openBar = document.createElement('div');
@@ -907,16 +972,18 @@ function renderAt(t){
   const active = events.find(ev => t >= ev.start && t < ev.start+ev.dur);
   if (active && active.trill) {
     noteNameEl.textContent = active.key.replace(/[0-9]/,'');
-    const trillInfo = getTrillInfo(active.key);
+    const trillInfo = getTrillInfo(active.key, active.trillTarget);
     chipsEl.innerHTML = '';
     const c = document.createElement('span');
     c.className = 'chip on';
-    c.textContent = 'trill ~ ' + trillInfo.targetKey.replace(/[0-9]/,'');
+    c.textContent = (trillInfo.explicit ? 'tremolo ~ ' : 'trill ~ ') + trillInfo.targetKey.replace(/[0-9]/,'');
     chipsEl.appendChild(c);
-    const c2 = document.createElement('span');
-    c2.className = 'chip';
-    c2.textContent = 'estimated a whole step — verify';
-    chipsEl.appendChild(c2);
+    if (!trillInfo.explicit) {
+      const c2 = document.createElement('span');
+      c2.className = 'chip';
+      c2.textContent = 'estimated a whole step — verify';
+      chipsEl.appendChild(c2);
+    }
   } else if (active) {
     noteNameEl.textContent = active.key.replace(/[0-9]/,'');
     const resolved = getFingering(active.key);
