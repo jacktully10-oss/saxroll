@@ -1,0 +1,1694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sax Roll — play along on alto sax</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --bg: #10161C;
+    --bg-2: #161E26;
+    --panel: #1B242D;
+    --line: #2B3641;
+    --ink: #EFE9DD;
+    --ink-dim: #9BA8B2;
+    --brass: #D9A24B;
+    --oct: #6B4BA8;
+    --lh: #D97A34;
+    --rh: #35618F;
+    --low: #4FD9B0;
+    --side: #E85D75;
+    --palm: #B98CE0;
+    --good: #6FCF97;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:'JetBrains Mono',monospace;}
+  body{padding-bottom:60px;}
+  h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+  ::selection{background:var(--brass);color:#10161C;}
+
+  .wrap{max-width:1180px;margin:0 auto;padding:0 18px;}
+
+  header.top{
+    padding:14px 18px 10px;
+    background:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.35) 0, transparent 60%),
+      radial-gradient(1px 1px at 70% 15%, rgba(255,255,255,.25) 0, transparent 60%),
+      radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,.3) 0, transparent 60%),
+      radial-gradient(1px 1px at 85% 60%, rgba(255,255,255,.2) 0, transparent 60%),
+      radial-gradient(1px 1px at 55% 45%, rgba(255,255,255,.25) 0, transparent 60%),
+      linear-gradient(180deg, #0B0F14, var(--bg));
+    border-bottom:1px solid var(--line);
+  }
+  header.top .inner{max-width:820px;margin:0 auto;}
+  header.top h1{font-size:20px;color:var(--ink);letter-spacing:.2px;}
+  header.top h1 em{font-style:italic;color:var(--brass);}
+  header.top p{color:var(--ink-dim);font-size:12px;line-height:1.4;margin-top:3px;max-width:60ch;}
+
+  .highway-shell{
+    margin-top:12px;
+    background: linear-gradient(180deg, #0B0F14 0%, #0E141A 100%);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+    position:relative;
+  }
+  .highway-controls{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    margin-top:10px; flex-wrap:wrap;
+  }
+  details.key-guide{ font-size:12.5px; flex:1; min-width:0; }
+  details.key-guide summary{
+    cursor:pointer; color:var(--ink-dim); border:1px solid var(--line);
+    padding:9px 14px; border-radius:8px; list-style:none;
+  }
+  details.key-guide summary::-webkit-details-marker{ display:none; }
+  details.key-guide[open] summary{ color:var(--brass); border-color:var(--brass); }
+  .key-guide-body{
+    margin:10px 0 0; padding:16px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    max-width:540px;
+  }
+  .sax-diagram{ width:100%; height:auto; display:block; }
+  .kg-dot.oct{ fill:var(--oct); }
+  .kg-dot.lh{ fill:var(--lh); }
+  .kg-dot.rh{ fill:var(--rh); }
+  .kg-dot.low{ fill:var(--low); }
+  .kg-dot.side{ fill:var(--side); }
+  .kg-dot.palm{ fill:var(--palm); }
+  .kg-dot{ stroke:#0B0F14; stroke-width:2; }
+  .kg-cluster{
+    fill:rgba(255,255,255,.03); stroke:var(--line); stroke-width:1.5; stroke-dasharray:3 3;
+  }
+  .kg-cluster.side{ stroke:var(--side); }
+  .kg-cluster.low{ stroke:var(--low); }
+  .kg-cluster.palm{ stroke:var(--palm); }
+  .kg-line{ stroke:var(--ink-dim); stroke-width:1.25; }
+  .kg-divider{ stroke:var(--line); stroke-width:2; }
+  .kg-label-in{
+    font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700;
+    fill:#10161C; text-anchor:middle;
+  }
+  .kg-sub-label{
+    font-family:'JetBrains Mono',monospace; font-size:9.5px; font-weight:700;
+    fill:#10161C; text-anchor:middle;
+  }
+  .kg-callout-label{
+    font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:600; fill:var(--ink);
+  }
+  .kg-caption{
+    font-family:'JetBrains Mono',monospace; font-size:10.5px; fill:var(--ink-dim);
+  }
+  .kg-note{
+    margin:12px 0 0; font-size:11px; color:var(--ink-dim); line-height:1.6;
+  }
+
+  .disclaimer{
+    background:rgba(232,99,122,.08); border:1px solid rgba(232,99,122,.35);
+    border-radius:8px; padding:10px 14px; margin:0 0 12px;
+    font-size:13px; line-height:1.6; color:var(--ink);
+  }
+  .disclaimer strong{ color:#F0A0AE; }
+  .file-help{ margin:0 0 14px; }
+  .file-help summary{
+    cursor:pointer; color:var(--brass); font-size:13px; font-weight:600;
+    padding:2px 0;
+  }
+  .file-help-body{
+    margin-top:10px; padding:14px 16px;
+    background:var(--panel); border:1px solid var(--line); border-radius:10px;
+  }
+  .file-help-body p{ margin:0 0 10px; font-size:13px; line-height:1.6; color:var(--ink-dim); }
+  .file-help-body p:last-of-type{ margin-bottom:0; }
+  .file-help-body ol{ margin:0 0 10px; padding-left:20px; }
+  .file-help-body li{ font-size:13px; line-height:1.7; color:var(--ink-dim); margin-bottom:4px; }
+  .file-help-body strong{ color:var(--ink); }
+  .file-help-note{ font-size:11.5px !important; font-style:italic; }
+
+  body.is-fullscreen header.top,
+  body.is-fullscreen section,
+  body.is-fullscreen footer,
+  body.is-fullscreen .wrap > details.file-help,
+  body.is-fullscreen .highway-controls,
+  body.is-fullscreen .readout,
+  body.is-fullscreen .fingering-legend{ display:none; }
+  body.is-fullscreen .wrap{ max-width:none; padding:0; }
+  body.is-fullscreen .highway-shell{
+    border-radius:0; margin-top:0;
+    height:100vh;
+  }
+  body.is-fullscreen .lanes{
+    height:100vh; max-height:none; overflow:hidden; padding:0 0 90px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  body.is-fullscreen .lane{
+    flex:0 1 84px; min-height:0; height:auto; margin:6px 0;
+  }
+  body.is-fullscreen .lane-label{ font-size:16px; width:120px; flex:0 0 120px; }
+  body.is-fullscreen .now-line{ left:120px; }
+  body.is-fullscreen .open-note-window{ left:120px; }
+  .fs-error{ font-size:12px; color:var(--oct); margin-left:8px; }
+
+  .fs-controls{
+    display:none;
+    position:absolute; left:0; right:0; bottom:0; z-index:20;
+    align-items:center; gap:14px;
+    padding:16px 24px 20px;
+    background:linear-gradient(180deg, transparent, rgba(6,9,13,.8) 45%, rgba(6,9,13,.92));
+  }
+  body.is-fullscreen .fs-controls{ display:flex; }
+  .fs-controls button{
+    background:transparent; border:none; color:#F2ECDD; font-size:22px;
+    cursor:pointer; padding:2px 6px; line-height:1;
+  }
+  .fs-scrub{ flex:1; accent-color:var(--brass); }
+  .fs-speed-slider{ width:120px; accent-color:var(--brass); }
+  .fs-time, .fs-bpm-label, .fs-bpm{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:#C9C2B4; white-space:nowrap;
+  }
+  .fs-bpm{ color:var(--brass); font-weight:700; min-width:28px; }
+  .now-line{
+    position:absolute; left:92px; top:0; bottom:0; width:2px;
+    background:linear-gradient(180deg, transparent, rgba(217,162,75,.7), transparent);
+    z-index:5;
+  }
+  .lanes{
+    position:relative; padding:14px 0; overflow:hidden;
+    height:calc(100vh - 320px); max-height:calc(100vh - 320px); min-height:220px;
+    display:flex; flex-direction:column; justify-content:center;
+  }
+  .open-note-window{
+    position:absolute; top:0; bottom:0; left:92px; right:0;
+    overflow:hidden;
+    pointer-events:none;
+    z-index:3;
+  }
+  .open-note-rail{
+    position:absolute; top:0; left:0; height:100%; width:100%;
+  }
+  .open-bar{
+    position:absolute;
+    top:2px; bottom:2px;
+    border:2px solid var(--brass);
+    border-radius:8px;
+    background:rgba(217,162,75,.06);
+    box-sizing:border-box;
+  }
+  .lane{
+    position:relative;
+    flex:0 1 30px;
+    min-height:0;
+    margin:4px 0;
+    display:flex;
+    align-items:center;
+  }
+  .lane-track{
+    position:relative;
+    height:100%;
+    flex:1;
+    overflow:hidden;
+  }
+  .lane-rail{
+    position:absolute;
+    top:0; left:0;
+    height:100%;
+    width:100%;
+    will-change:transform;
+  }
+  .lane-label{
+    width:92px;
+    flex:0 0 92px;
+    text-align:center;
+    font-size:12px;
+    color:var(--ink-dim);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    padding:0 4px;
+  }
+  .lane-divider{
+    border-top:1px dashed var(--line);
+    margin:8px 0 5px;
+  }
+  .bar{
+    position:absolute;
+    top:3px; bottom:3px;
+    border-radius:6px;
+    opacity:.92;
+    min-width:4px;
+  }
+  .bar.oct{background:var(--oct, #6B4BA8);}
+  .bar.lh{background:var(--lh, #D97A34);}
+  .bar.rh{background:var(--rh, #35618F);}
+  .bar.low{background:var(--low, #4FD9B0);}
+  .bar.side{background:var(--side, #E85D75);}
+  .bar.palm{background:var(--palm, #B98CE0);}
+  .trill-zigzag{
+    position:absolute; top:3px; bottom:3px; height:calc(100% - 6px);
+    overflow:visible;
+  }
+  .trill-zigzag.oct .trill-stroke{stroke:var(--oct, #6B4BA8);}
+  .trill-zigzag.lh .trill-stroke{stroke:var(--lh, #D97A34);}
+  .trill-zigzag.rh .trill-stroke{stroke:var(--rh, #35618F);}
+  .trill-zigzag.low .trill-stroke{stroke:var(--low, #4FD9B0);}
+  .trill-zigzag.side .trill-stroke{stroke:var(--side, #E85D75);}
+  .trill-zigzag.palm .trill-stroke{stroke:var(--palm, #B98CE0);}
+
+  .readout{
+    display:flex; align-items:center; gap:18px;
+    padding:16px 18px 20px;
+    border-top:1px solid var(--line);
+    flex:0 0 auto;
+  }
+  .note-name{
+    font-family:'Fraunces',serif; font-weight:700; font-size:58px; color:var(--brass);
+    width:92px; text-align:center; flex:0 0 92px;
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+  .chip{
+    font-size:11px; padding:3px 8px; border-radius:999px;
+    border:1px solid var(--line); color:var(--ink-dim);
+  }
+  .chip.on{border-color:var(--brass); color:var(--brass); background:rgba(217,162,75,.08);}
+
+  .fingering-legend{
+    display:flex; flex-wrap:wrap; gap:14px; justify-content:center; padding:10px 18px 18px;
+    font-size:11px; color:var(--ink-dim);
+    flex:0 0 auto;
+  }
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:-1px;}
+
+  section{margin-top:26px;}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:18px;
+  }
+  .card + .card{margin-top:14px;}
+  .card h2{font-size:16px; margin-bottom:10px; color:var(--ink);}
+  .card p{color:var(--ink-dim); font-size:13px; line-height:1.6;}
+
+  .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;}
+  button{
+    font-family:'JetBrains Mono',monospace;
+    background:var(--brass); color:#20150A; border:none;
+    padding:10px 16px; border-radius:8px; font-weight:700; font-size:13px;
+    cursor:pointer;
+  }
+  button.secondary{background:transparent; color:var(--ink); border:1px solid var(--line); font-weight:500;}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  input[type=file]{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-dim);
+  }
+  input[type=range]{accent-color:var(--brass);}
+  .row{display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--ink-dim);}
+  .scrub{width:100%; }
+  .time{font-variant-numeric:tabular-nums; color:var(--ink-dim); font-size:12px;}
+
+  .status{font-size:12.5px; margin-top:10px; color:var(--ink-dim);}
+  .status.error{color:#E8637A;}
+  .status.ok{color:var(--good);}
+  .saved-list{ margin-top:10px; display:flex; flex-direction:column; gap:6px; }
+  .saved-empty{ color:var(--ink-dim); font-size:12.5px; }
+  .saved-row{
+    display:flex; align-items:center; gap:10px;
+    padding:8px 10px; background:#0E141A; border:1px solid var(--line); border-radius:8px;
+  }
+  .saved-row .saved-name{ flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }
+  .saved-row .saved-meta{ color:var(--ink-dim); font-size:11px; flex:0 0 auto; }
+  button.tiny{ padding:5px 10px; font-size:11.5px; border-radius:6px; }
+
+  footer{padding:30px 18px 10px; text-align:center; color:var(--ink-dim); font-size:11.5px;}
+  a{color:var(--brass);}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="inner" style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+    <div>
+      <h1>Sax <em>Roll</em></h1>
+      <p>Upload a MusicXML file and follow the fingering roll, timed to the music.</p>
+    </div>
+    <div style="flex:0 0 auto;">
+      <button id="subscribeBtn" type="button" style="background:var(--brass);color:#20150A;border:none;padding:9px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">Subscribe</button>
+      <div id="checkoutMsg" style="font-size:11.5px;color:var(--ink-dim);margin-top:6px;max-width:220px;"></div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <details class="file-help" style="margin-top:14px;">
+    <summary>Features &amp; how to use Sax Roll</summary>
+    <div class="file-help-body">
+      <p><strong>What it does:</strong> upload a MusicXML file of any song and Sax Roll turns it into a scrolling fingering guide — colored bars roll toward a fixed "now" line, showing exactly which keys to press, timed to the actual music.</p>
+      <p><strong>Getting started:</strong> tap "Choose File" below and pick a MusicXML file (or try one of the demo buttons first with no file needed), then hit Play. Follow the bars as they reach the now line — each colored lane is a specific key on the horn (see the Key guide below for exactly which).</p>
+      <p><strong>Tempo:</strong> the bpm slider and number box (top of the Play card) let you slow a song down to isolate hard passages, or speed it up — from 1 to 250 bpm, independent of what the file's original tempo was.</p>
+      <p><strong>Trills:</strong> notes marked as trills show a zigzag line instead of a solid bar in whichever key needs to rapidly alternate — the sound alternates too, not just the visual.</p>
+      <p><strong>Fullscreen:</strong> the ⛶ Fullscreen button expands the highway to fill your whole screen with on-screen play/tempo controls, useful for practicing at a distance from your device.</p>
+      <p><strong>Saved songs:</strong> once you've loaded a song from a file, save it under a name so you don't need to re-upload it next time — stored on this device, in this browser.</p>
+    </div>
+  </details>
+
+  <div class="highway-controls">
+    <details class="key-guide">
+      <summary>Key guide — what L1, R3, etc. mean</summary>
+      <div class="key-guide-body">
+        <svg viewBox="0 0 560 640" class="sax-diagram" xmlns="http://www.w3.org/2000/svg">
+          <!-- connecting lines (drawn first, so icons sit on top) -->
+          <line x1="150" y1="50" x2="200" y2="48" class="kg-line"/>
+          <line x1="150" y1="95" x2="203" y2="90" class="kg-line"/>
+          <line x1="110" y1="344" x2="145" y2="340" class="kg-line"/>
+          <line x1="110" y1="501" x2="142" y2="497" class="kg-line"/>
+          <line x1="455" y1="114" x2="446" y2="112" class="kg-line"/>
+          <line x1="445" y1="394" x2="433" y2="390" class="kg-line"/>
+
+          <!-- main spine: L1-L3, divider, R1-R3 -->
+          <circle cx="280" cy="90"  r="28" class="kg-dot lh"/><text x="280" y="97"  class="kg-label-in">L1</text>
+          <circle cx="280" cy="160" r="28" class="kg-dot lh"/><text x="280" y="167" class="kg-label-in">L2</text>
+          <circle cx="280" cy="230" r="28" class="kg-dot lh"/><text x="280" y="237" class="kg-label-in">L3</text>
+          <line x1="255" y1="268" x2="305" y2="268" class="kg-divider"/>
+          <circle cx="280" cy="310" r="28" class="kg-dot rh"/><text x="280" y="317" class="kg-label-in">R1</text>
+          <circle cx="280" cy="380" r="28" class="kg-dot rh"/><text x="280" y="387" class="kg-label-in">R2</text>
+          <circle cx="280" cy="450" r="28" class="kg-dot rh"/><text x="280" y="457" class="kg-label-in">R3</text>
+
+          <!-- octave key: thumb triangle, upper left -->
+          <path d="M196,32 L220,46 L196,60 Z" class="kg-dot oct"/>
+          <text x="145" y="50" class="kg-callout-label" text-anchor="end">Octave key</text>
+
+          <!-- front F -->
+          <circle cx="215" cy="90" r="13" class="kg-dot side"/>
+          <text x="145" y="95" class="kg-callout-label" text-anchor="end">Front F</text>
+
+          <!-- side keys cluster -->
+          <ellipse cx="185" cy="340" rx="42" ry="55" class="kg-cluster side"/>
+          <circle cx="185" cy="315" r="14" class="kg-dot side"/><text x="185" y="319" class="kg-sub-label">Bb</text>
+          <circle cx="185" cy="365" r="14" class="kg-dot side"/><text x="185" y="369" class="kg-sub-label">E</text>
+          <text x="106" y="344" class="kg-callout-label" text-anchor="end">Side keys</text>
+
+          <!-- left pinky cluster -->
+          <ellipse cx="185" cy="497" rx="45" ry="90" class="kg-cluster low"/>
+          <circle cx="185" cy="430" r="13" class="kg-dot low"/><text x="185" y="434" class="kg-sub-label">G#</text>
+          <circle cx="185" cy="475" r="13" class="kg-dot low"/><text x="185" y="479" class="kg-sub-label">C#</text>
+          <circle cx="185" cy="520" r="13" class="kg-dot low"/><text x="185" y="524" class="kg-sub-label">B</text>
+          <circle cx="185" cy="565" r="13" class="kg-dot low"/><text x="185" y="569" class="kg-sub-label">Bb</text>
+          <text x="106" y="501" class="kg-callout-label" text-anchor="end">Left pinky</text>
+
+          <!-- palm keys cluster -->
+          <ellipse cx="397" cy="112" rx="48" ry="50" class="kg-cluster palm"/>
+          <circle cx="410" cy="90"  r="13" class="kg-dot palm"/><text x="410" y="94"  class="kg-sub-label">D</text>
+          <circle cx="385" cy="112" r="13" class="kg-dot palm"/><text x="385" y="116" class="kg-sub-label">Eb</text>
+          <circle cx="410" cy="134" r="13" class="kg-dot palm"/><text x="410" y="138" class="kg-sub-label">F</text>
+          <text x="459" y="118" class="kg-callout-label" text-anchor="start">Palm keys</text>
+
+          <!-- right pinky cluster -->
+          <ellipse cx="390" cy="390" rx="42" ry="52" class="kg-cluster low"/>
+          <circle cx="390" cy="365" r="13" class="kg-dot low"/><text x="390" y="369" class="kg-sub-label">Eb</text>
+          <circle cx="390" cy="415" r="13" class="kg-dot low"/><text x="390" y="419" class="kg-sub-label">C</text>
+          <text x="449" y="398" class="kg-callout-label" text-anchor="start">Right pinky</text>
+        </svg>
+        <p class="kg-note">Purple = octave key, orange = left hand, blue = right hand, teal = low pinky keys, rose = side/front keys, violet = palm keys.</p>
+      </div>
+    </details>
+    <button class="secondary" id="fullscreenBtn" type="button">⛶ Fullscreen</button>
+  </div>
+
+  <div class="highway-shell" id="highwayShell">
+    <div class="now-line"></div>
+    <div class="lanes" id="lanes">
+      <div class="open-note-window"><div class="open-note-rail" id="track-open"></div></div>
+      <div class="lane"><div class="lane-label">Oct</div><div class="lane-track"><div class="lane-rail" id="track-oct"></div></div></div>
+      <div class="lane"><div class="lane-label">L1</div><div class="lane-track"><div class="lane-rail" id="track-l1"></div></div></div>
+      <div class="lane"><div class="lane-label">L2</div><div class="lane-track"><div class="lane-rail" id="track-l2"></div></div></div>
+      <div class="lane"><div class="lane-label">L3</div><div class="lane-track"><div class="lane-rail" id="track-l3"></div></div></div>
+      <div class="lane"><div class="lane-label">R1</div><div class="lane-track"><div class="lane-rail" id="track-r1"></div></div></div>
+      <div class="lane"><div class="lane-label">R2</div><div class="lane-track"><div class="lane-rail" id="track-r2"></div></div></div>
+      <div class="lane"><div class="lane-label">R3</div><div class="lane-track"><div class="lane-rail" id="track-r3"></div></div></div>
+    </div>
+    <div class="readout">
+      <div class="note-name" id="noteName">–</div>
+      <div class="chips" id="chips"></div>
+    </div>
+    <div class="fingering-legend" id="legend"></div>
+
+    <div class="fs-controls" id="fsControls">
+      <button id="fsPlayBtn" type="button" aria-label="Play/Pause">▶</button>
+      <button id="fsRestartBtn" type="button" aria-label="Restart">⟲</button>
+      <input type="range" id="fsScrub" class="fs-scrub" min="0" max="1000" value="0">
+      <span class="fs-time" id="fsTimeLabel">0:00 / 0:00</span>
+      <span class="fs-bpm-label">bpm</span>
+      <input type="range" id="fsSpeed" class="fs-speed-slider" min="0.3" max="1.8" step="0.005" value="1">
+      <span class="fs-bpm" id="fsBpmReadout">120</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="card">
+      <h2>1. Load a song</h2>
+      <p class="disclaimer"><strong>⚠ This only reads MusicXML files</strong> (.xml, .musicxml, or .mxl) — not PDFs, images, or scanned sheet music. A PDF's notes are pixels, not data, so there's nothing here to parse directly.</p>
+      <details class="file-help">
+        <summary>Where do I get a MusicXML file?</summary>
+        <div class="file-help-body">
+          <p><strong>If it's already digital sheet music</strong> — from MuseScore, Finale, Sibelius, Dorico, Flat.io, or Soundslice, just export/download it as MusicXML from whichever of those made it.</p>
+          <p><strong>Free scores:</strong> <a href="https://musescore.com" target="_blank" rel="noopener">musescore.com</a> (huge community library, most scores downloadable as MusicXML), <a href="https://musopen.org" target="_blank" rel="noopener">musopen.org</a> (public-domain classical), and <a href="https://flat.io" target="_blank" rel="noopener">flat.io</a> all offer direct MusicXML downloads.</p>
+          <p><strong>If all you have is a PDF</strong> (bought sheet music, a scan, IMSLP, etc.), convert it first:</p>
+          <ol>
+            <li>Download <strong>MuseScore 4</strong> (free) from <a href="https://musescore.org" target="_blank" rel="noopener">musescore.org</a> — desktop app, not the mobile app or website.</li>
+            <li>Open it, then <strong>File → Import PDF...</strong> (a separate option from regular "Open" — this is the one that reads the PDF into notes).</li>
+            <li>Wait for it to process. It'll open as an actual editable score, not a picture.</li>
+            <li>Skim it against the original PDF and fix any notes/rhythms it misread — automatic reading isn't perfect, especially in busy measures.</li>
+            <li><strong>File → Export...</strong>, set the format dropdown to <strong>MusicXML</strong> (not PDF, which is the default), and save.</li>
+            <li>Upload that exported file here.</li>
+          </ol>
+          <p class="file-help-note">This whole process is for your own copy of music you already own or have rights to use — same as using a fingering chart alongside any sheet music.</p>
+        </div>
+      </details>
+      <div class="controls">
+        <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl,.pdf">
+        <button class="secondary" id="demoBtn" type="button">Try a demo (Ode to Joy)</button>
+        <button class="secondary" id="demoBtn2" type="button">Try a demo with palm keys</button>
+        <button class="secondary" id="demoBtn3" type="button">Try a demo with a trill</button>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>2. Play it back</h2>
+      <div class="controls">
+        <button id="playBtn" disabled>▶ Play</button>
+        <button class="secondary" id="restartBtn" disabled>⟲ Restart</button>
+        <div class="row">
+          Tempo
+          <input type="range" id="speed" min="0.3" max="1.8" step="0.005" value="1">
+          <input type="number" id="bpmInput" min="1" max="250" step="1" style="width:58px;background:#0E141A;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 6px;font-family:inherit;">
+          <span style="color:var(--ink-dim);">bpm</span>
+          <span id="speedVal" class="time"></span>
+        </div>
+        <div class="row">
+          <input type="checkbox" id="soundToggle" checked>
+          Sound (concert pitch)
+        </div>
+        <div class="row">
+          Instrument
+          <select id="instrumentSelect" style="background:#0E141A;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:5px 8px;font-family:inherit;font-size:13px;">
+            <option value="alto" selected>Alto</option>
+            <option value="soprano">Soprano</option>
+            <option value="tenor">Tenor</option>
+            <option value="baritone">Baritone</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:12px;">
+        <input type="range" id="scrub" class="scrub" min="0" max="1000" value="0" disabled>
+        <span class="time" id="timeLabel">0:00 / 0:00</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Saved songs</h2>
+      <p>Save a loaded song here so you don't need to re-upload the file next time. Saved on this device, in this browser only.</p>
+      <div class="controls">
+        <input type="text" id="saveNameInput" placeholder="Name this song…" disabled style="flex:1; min-width:160px; background:#0E141A;border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:9px 12px;font-family:inherit;font-size:13px;">
+        <button class="secondary" id="saveSongBtn" type="button" disabled>💾 Save current song</button>
+      </div>
+      <div id="savedSongsList" class="saved-list"></div>
+      <div class="status" id="saveStatus"></div>
+    </div>
+
+    <div class="card">
+      <h2>About the fingerings</h2>
+      <p>Every fingering in this app — all 33 notes, low Bb3 through high F#6 — has been checked against multiple independent, authoritative fingering references, with full agreement across sources. The one exception is written high F#6, which needs an optional key that not every alto has; that note is flagged when it comes up, and the fingering shown assumes your horn has it. Where a note has other valid alternate fingerings (which is common on saxophone), this app always shows the one standard choice, not every option.</p>
+    </div>
+  </section>
+</div>
+
+<footer>Built for practicing, not performing — this isn't a substitute for a teacher's ear. Have fun learning the song.<br><br>Questions or issues? Contact us: <a href="mailto:saxophoneroll@gmail.com">saxophoneroll@gmail.com</a></footer>
+
+<script>
+(function(){
+
+// ---------- Fingering data ----------
+const NOTE_NAMES = ['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
+
+const REG2 = { // written D4..C#5, no octave key — cross-checked against wfg.woodwind.org
+  'D':  ['l1','l2','l3','r1','r2','r3'],
+  'Eb': ['l1','l2','l3','r1','r2','r3','lowEb'],
+  'E':  ['l1','l2','l3','r1','r2'],
+  'F':  ['l1','l2','l3','r1'],
+  'F#': ['l1','l2','l3','r2'],
+  'G':  ['l1','l2','l3'],
+  'G#': ['l1','l2','l3','keyGs'],
+  'A':  ['l1','l2'],
+  'Bb': ['l1','l2','sideBb'],
+  'B':  ['l1'],
+  'C':  ['l2'],
+  'C#': [],
+};
+
+const REG1 = { // written Bb3..C#4 — low pinky-key register; RH low-C key is held throughout this whole register
+  'Bb3': ['l1','l2','l3','lowBb','r1','r2','r3','lowC'],
+  'B3':  ['l1','l2','l3','lowB','r1','r2','r3','lowC'],
+  'C4':  ['l1','l2','l3','r1','r2','r3','lowC'],
+  'C#4': ['l1','l2','l3','lowCs','r1','r2','r3','lowC'],
+};
+
+const REG4 = { // written D6..F#6 — palm-key register; main LH/RH fingers lift back open here
+  'D6':  ['oct','palmD'],
+  'Eb6': ['oct','palmD','palmEb'],
+  'E6':  ['oct','palmD','palmEb','sideE'],
+  'F6':  ['oct','palmD','palmEb','palmF','sideE'],
+  'F#6': ['oct','palmD','palmEb','palmF','sideE','highFs'], // F6's fingering plus the dedicated high F# key — needs that OPTIONAL key many (not all) altos have, genuinely instrument-dependent
+};
+
+const FINGERING = {};
+for (const pc in REG2) {
+  FINGERING[pc+'4'] = REG2[pc];
+  FINGERING[pc+'5'] = ['oct', ...REG2[pc]];
+}
+Object.assign(FINGERING, REG1, REG4);
+// C5/C#5 are the top of the NO-octave-key register (confirmed directly against source data —
+// they carry no octave-key prefix there), not octave-key versions of C4/C#4. So they need
+// correcting after the generic pattern above, and C6/C#6 (the real octave-key versions) added.
+FINGERING['C5']  = REG2['C'];
+FINGERING['C#5'] = REG2['C#'];
+FINGERING['C6']  = ['oct', ...REG2['C']];
+FINGERING['C#6'] = ['oct', ...REG2['C#']];
+
+const AUX_META = {
+  lowBb: {label:'Low Bb',  group:'low',  className:'low'},
+  lowB:  {label:'Low B',   group:'low',  className:'low'},
+  lowC:  {label:'Low C',   group:'low',  className:'low'},
+  lowCs: {label:'Low C#',  group:'low',  className:'low'},
+  lowEb: {label:'Low Eb',  group:'low',  className:'low'},
+  keyGs: {label:'G# key',  group:'low',  className:'low'},
+  sideBb:{label:'Side Bb', group:'side', className:'side'},
+  highFs:{label:'High F# key', group:'side', className:'side'},
+  sideE: {label:'Side E',  group:'side', className:'side'},
+  frontF:{label:'Front F', group:'side', className:'side'},
+  palmD: {label:'Palm D',  group:'palm', className:'palm'},
+  palmEb:{label:'Palm Eb', group:'palm', className:'palm'},
+  palmF: {label:'Palm F',  group:'palm', className:'palm'},
+};
+const AUX_LABELS = Object.fromEntries(Object.entries(AUX_META).map(([k,v])=>[k, v.label + ' key']));
+// F#6 is the one note that's genuinely instrument-dependent (needs an OPTIONAL key many altos
+// lack) rather than just uncertain — every other note has been cross-checked against multiple
+// independent, authoritative fingering references with full agreement.
+const APPROX_NOTES = new Set(['F#6']);
+
+function getFingering(key){
+  if (FINGERING[key]) return { keys: FINGERING[key], adjusted: false, resolvedKey: key };
+  const m = key.match(/^([A-G]#?)(-?\d+)$/);
+  if (!m) return { keys: [], adjusted: false, resolvedKey: key, missing: true };
+  const pc = m[1], octave = parseInt(m[2],10);
+  for (let d=1; d<=3; d++){
+    for (const dir of [1,-1]){
+      const tryKey = pc + (octave + d*dir);
+      if (FINGERING[tryKey]) return { keys: FINGERING[tryKey], adjusted: true, resolvedKey: tryKey };
+    }
+  }
+  return { keys: [], adjusted: false, resolvedKey: key, missing: true };
+}
+
+// Trills alternate rapidly between the written note and a neighbor. When the file gives us
+// an explicit target (measured tremolo between two written pitches), we use that directly —
+// otherwise we assume a whole step up (the far more common case for a plain trill-mark),
+// flagged to the player as an estimate.
+function getTrillInfo(baseKey, explicitTargetKey){
+  const targetKey = explicitTargetKey || midiToName(keyToMidi(baseKey) + 2).key;
+  const baseFingering = new Set(getFingering(baseKey).keys);
+  const targetFingering = new Set(getFingering(targetKey).keys);
+  const toggleKeys = new Set();
+  baseFingering.forEach(k => { if (!targetFingering.has(k)) toggleKeys.add(k); });
+  targetFingering.forEach(k => { if (!baseFingering.has(k)) toggleKeys.add(k); });
+  return { targetKey, baseFingering, targetFingering, toggleKeys, explicit: !!explicitTargetKey };
+}
+
+function midiToName(midi){
+  const idx = ((midi % 12)+12)%12;
+  const octave = Math.floor(midi/12)-1;
+  return { pc: NOTE_NAMES[idx], octave, key: NOTE_NAMES[idx]+octave };
+}
+
+// ---------- MusicXML parsing ----------
+const STEP_SEMITONE = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+
+function parseMusicXML(xmlText){
+  const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+  if (doc.querySelector('parsererror')) throw new Error('Could not read that file as XML.');
+  const parts = doc.querySelectorAll('score-partwise > part, part');
+  if (!parts.length) throw new Error('No <part> found — is this a MusicXML file?');
+  const part = parts[0];
+
+  let divisions = 1;
+  let tempo = 100;
+  let cursor = 0;
+  let trillActive = false;
+  let pendingTremolo = null;
+  const events = [];
+
+  const measures = part.querySelectorAll('measure');
+  measures.forEach(measure=>{
+    Array.from(measure.children).forEach(el=>{
+      if (el.tagName === 'attributes') {
+        const d = el.querySelector('divisions');
+        if (d) divisions = parseInt(d.textContent, 10) || divisions;
+      }
+      if (el.tagName === 'sound' && el.getAttribute('tempo')) {
+        tempo = parseFloat(el.getAttribute('tempo')) || tempo;
+      }
+      if (el.tagName === 'direction') {
+        const nestedSound = el.querySelector('sound[tempo]');
+        if (nestedSound) tempo = parseFloat(nestedSound.getAttribute('tempo')) || tempo;
+      }
+      if (el.tagName === 'backup') {
+        const durEl = el.querySelector('duration');
+        const durQuarters = durEl ? (parseFloat(durEl.textContent)/divisions) : 0;
+        cursor -= durQuarters * (60/tempo);
+      }
+      if (el.tagName === 'forward') {
+        const durEl = el.querySelector('duration');
+        const durQuarters = durEl ? (parseFloat(durEl.textContent)/divisions) : 0;
+        cursor += durQuarters * (60/tempo);
+      }
+      if (el.tagName === 'note') {
+        const isChordNote = !!el.querySelector('chord');
+        const durEl = el.querySelector('duration');
+        const durQuarters = durEl ? (parseFloat(durEl.textContent)/divisions) : 0;
+        const durSec = durQuarters * (60/tempo);
+        if (isChordNote) return;
+
+        // Multi-voice exports (common from MuseScore) interleave a second voice
+        // after a <backup> — only keep the main melody line (voice 1, or untagged).
+        const voiceEl = el.querySelector('voice');
+        const voice = voiceEl ? voiceEl.textContent : '1';
+
+        const rest = el.querySelector('rest');
+        if (!rest && voice === '1') {
+          const pitchEl = el.querySelector('pitch');
+          if (pitchEl) {
+            const step = pitchEl.querySelector('step').textContent;
+            const alterEl = pitchEl.querySelector('alter');
+            const alter = alterEl ? parseInt(alterEl.textContent,10) : 0;
+            const octave = parseInt(pitchEl.querySelector('octave').textContent,10);
+            const midi = (octave+1)*12 + STEP_SEMITONE[step] + alter;
+            const {key} = midiToName(midi);
+            const noteStart = Math.max(cursor,0);
+            const noteDur = Math.max(durSec, 0.05);
+
+            const ornaments = el.querySelector('notations > ornaments');
+
+            // Measured tremolo between two different written pitches (<tremolo type="start/stop">)
+            // is rapid alternation with an EXPLICIT target note — more reliable than guessing, so
+            // it's handled separately from trill-mark/wavy-line: the two notes merge into one
+            // event spanning both, using the second note's actual pitch as the trill target.
+            const tremoloEl = ornaments && ornaments.querySelector('tremolo');
+            const tremoloType = tremoloEl && tremoloEl.getAttribute('type');
+            if (tremoloType === 'start') {
+              pendingTremolo = { key, start: noteStart, dur: noteDur };
+            } else if (tremoloType === 'stop' && pendingTremolo) {
+              const mergedDur = (noteStart + noteDur) - pendingTremolo.start;
+              events.push({ key: pendingTremolo.key, start: pendingTremolo.start, dur: mergedDur, trill: true, trillTarget: key });
+              pendingTremolo = null;
+            } else {
+              // Trills: a <trill-mark/> on this note, or being inside a <wavy-line> start/stop
+              // span, both mean the player alternates rapidly with the neighbor note.
+              const hasTrillMark = !!(ornaments && ornaments.querySelector('trill-mark'));
+              const wavyStart = ornaments && ornaments.querySelector('wavy-line[type="start"]');
+              const wavyStop = ornaments && ornaments.querySelector('wavy-line[type="stop"]');
+              if (wavyStart) trillActive = true;
+              const isTrill = hasTrillMark || trillActive;
+              if (wavyStop) trillActive = false;
+              events.push({ key, start: noteStart, dur: noteDur, trill: isTrill });
+            }
+          }
+        }
+        cursor += durSec;
+      }
+    });
+  });
+
+  if (pendingTremolo) {
+    events.push({ key: pendingTremolo.key, start: pendingTremolo.start, dur: pendingTremolo.dur, trill: false });
+  }
+  events.sort((a,b)=> a.start - b.start);
+  if (!events.length) throw new Error('No notes found in that file.');
+  return { events, tempo };
+}
+
+function demoSong(){
+  const q = 0.5;
+  const seq = ['E4','E4','F4','G4','G4','F4','E4','D4','C4','C4','D4','E4','E4','D4','D4'];
+  let t = 0;
+  const events = seq.map((key,i)=>{
+    const dur = (i===14) ? q*2 : q;
+    const ev = { key, start: t, dur };
+    t += dur;
+    return ev;
+  });
+  return { events, tempo: 60/q };
+}
+
+// A short built-in phrase that dips into the low register and reaches up into palm keys,
+// just so you can see those rows appear on the highway.
+function demoSongWide(){
+  const q = 0.45;
+  const seq = ['Bb3','C4','D4','F4','A4','D6','Eb6','D6','A4','F4','D4','C4','Bb3'];
+  let t = 0;
+  const events = seq.map((key,i)=>{
+    const ev = { key, start: t, dur: q };
+    t += q;
+    return ev;
+  });
+  return { events, tempo: 60/q };
+}
+
+// A short phrase with a held trilled note in the middle, to show the zigzag rendering.
+function demoSongTrill(){
+  const q = 0.45;
+  const seq = [
+    { key:'D4', dur: q },
+    { key:'E4', dur: q },
+    { key:'F#4', dur: q*4, trill: true },
+    { key:'E4', dur: q },
+    { key:'D4', dur: q },
+  ];
+  let t = 0;
+  const events = seq.map(n=>{
+    const ev = { key:n.key, start:t, dur:n.dur, trill: !!n.trill };
+    t += n.dur;
+    return ev;
+  });
+  return { events, tempo: 60/q };
+}
+
+// ---------- Rendering ----------
+const BASE_LANES = ['oct','l1','l2','l3','r1','r2','r3'];
+const BASE_LANE_CLASS = {oct:'oct', l1:'lh', l2:'lh', l3:'lh', r1:'rh', r2:'rh', r3:'rh'};
+const BASE_LANE_LABEL = {oct:'Oct', l1:'L1', l2:'L2', l3:'L3', r1:'R1', r2:'R2', r3:'R3'};
+const GROUP_ORDER = ['low','side','palm'];
+
+let events = [];
+let songDuration = 0;
+let songBaseTempo = 120;
+let pxPerSec = 90;
+let playing = false;
+let audioCtx = null;
+let startCtxTime = 0;
+let pausedAt = 0;
+let lastLoadedXmlText = null;
+let rafId = null;
+let scheduledOsc = [];
+let elLanes = {};
+let nextScheduleIdx = 0;
+const SCHEDULE_HORIZON = 4; // seconds of song-time to keep scheduled ahead of playback
+
+const lanesEl = document.getElementById('lanes');
+const noteNameEl = document.getElementById('noteName');
+const chipsEl = document.getElementById('chips');
+const statusEl = document.getElementById('status');
+const playBtn = document.getElementById('playBtn');
+const restartBtn = document.getElementById('restartBtn');
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+const highwayShellEl = document.getElementById('highwayShell');
+const scrub = document.getElementById('scrub');
+const timeLabel = document.getElementById('timeLabel');
+const speed = document.getElementById('speed');
+const bpmInput = document.getElementById('bpmInput');
+const speedVal = document.getElementById('speedVal');
+const soundToggle = document.getElementById('soundToggle');
+const instrumentSelect = document.getElementById('instrumentSelect');
+// Written-to-concert-pitch offsets, in semitones — fingerings are identical across the whole
+// sax family, so this is the ONLY thing that differs per instrument (confirmed against
+// multiple sources: alto -9, soprano -2, tenor -14 (octave+M2), baritone -21 (octave+M6)).
+const INSTRUMENT_TRANSPOSE = { alto: 9, soprano: 2, tenor: 14, baritone: 21 };
+function currentTranspose(){
+  return INSTRUMENT_TRANSPOSE[instrumentSelect.value] ?? 9;
+}
+const legendEl = document.getElementById('legend');
+const fsControls = document.getElementById('fsControls');
+const fsPlayBtn = document.getElementById('fsPlayBtn');
+const fsRestartBtn = document.getElementById('fsRestartBtn');
+const fsScrub = document.getElementById('fsScrub');
+const fsTimeLabel = document.getElementById('fsTimeLabel');
+const fsSpeed = document.getElementById('fsSpeed');
+const fsBpmReadout = document.getElementById('fsBpmReadout');
+
+BASE_LANES.forEach(l=> elLanes[l] = document.getElementById('track-'+l));
+elLanes['__open'] = document.getElementById('track-open');
+
+function fmtTime(s){
+  s = Math.max(0,s);
+  const m = Math.floor(s/60), sec = Math.floor(s%60);
+  return m+':'+String(sec).padStart(2,'0');
+}
+
+function usedAuxKeys(){
+  const set = new Set();
+  events.forEach(ev=>{
+    getFingering(ev.key).keys.forEach(k=>{ if (AUX_META[k]) set.add(k); });
+    if (ev.trill) {
+      getTrillInfo(ev.key, ev.trillTarget).targetFingering.forEach(k=>{ if (AUX_META[k]) set.add(k); });
+    }
+  });
+  // stable order: grouped, then alphabetical within group
+  return Object.keys(AUX_META).filter(k=>set.has(k));
+}
+
+function buildLanes(){
+  // reset aux lanes each time, since different songs need different extra rows
+  lanesEl.querySelectorAll('.aux-lane-el').forEach(el=> el.remove());
+  elLanes = {};
+  BASE_LANES.forEach(l=> elLanes[l] = document.getElementById('track-'+l));
+  elLanes['__open'] = document.getElementById('track-open');
+
+  const aux = usedAuxKeys();
+  let lastGroup = null;
+  aux.forEach(key=>{
+    const meta = AUX_META[key];
+    if (meta.group !== lastGroup) {
+      const divider = document.createElement('div');
+      divider.className = 'lane-divider aux-lane-el';
+      lanesEl.appendChild(divider);
+      lastGroup = meta.group;
+    }
+    const lane = document.createElement('div');
+    lane.className = 'lane aux-lane-el';
+    lane.innerHTML = `<div class="lane-label">${meta.label}</div><div class="lane-track"><div class="lane-rail"></div></div>`;
+    lanesEl.appendChild(lane);
+    elLanes[key] = lane.querySelector('.lane-rail');
+  });
+
+  buildLegend(aux);
+  fitLanesToScreen();
+}
+
+// Instead of trusting CSS flexbox to shrink lanes to fit (which has been unreliable across
+// browsers), directly calculate and set each lane's exact height in JS. This guarantees
+// everything fits the actual screen, regardless of how many lanes a song needs.
+function fitLanesToScreen(){
+  if (!document.body.classList.contains('is-fullscreen')) {
+    // leave default (non-fullscreen) view under normal CSS control
+    document.querySelectorAll('#lanes > .lane').forEach(l=>{ l.style.flex=''; l.style.height=''; });
+    removeFitDebug();
+    return;
+  }
+  const lanes = document.querySelectorAll('#lanes > .lane');
+  const dividers = document.querySelectorAll('#lanes > .lane-divider');
+  if (!lanes.length) return;
+
+  // Measure real values instead of guessing constants — this is what went wrong last time.
+  const lanesStyle = getComputedStyle(lanesEl);
+  const padTop = parseFloat(lanesStyle.paddingTop) || 0;
+  const padBottom = parseFloat(lanesStyle.paddingBottom) || 0;
+  const lanesRect = lanesEl.getBoundingClientRect();
+
+  // Temporarily measure a divider's real rendered height (they have no inline height set).
+  let dividerHeight = 13;
+  if (dividers.length) {
+    const dr = dividers[0].getBoundingClientRect();
+    if (dr.height > 0) dividerHeight = dr.height + 8; // include its own margin
+  }
+
+  const laneMargin = 12; // 6px top + 6px bottom, matches .lane CSS margin
+  const safetyBuffer = 8;
+
+  const contentHeight = lanesRect.height - padTop - padBottom;
+  const available = contentHeight - (dividers.length * dividerHeight) - safetyBuffer;
+  const perLane = Math.max(12, Math.floor(available / lanes.length) - laneMargin);
+
+  lanes.forEach(l=>{
+    l.style.flex = 'none';
+    l.style.height = perLane + 'px';
+  });
+
+  showFitDebug(`innerHeight=${window.innerHeight} lanesRect.height=${Math.round(lanesRect.height)} padTop=${padTop} padBottom=${padBottom} dividerH=${Math.round(dividerHeight)} lanes=${lanes.length} perLane=${perLane}px actual=${Math.round(lanes[0].getBoundingClientRect().height)}px`);
+}
+
+function showFitDebug(text){
+  let el = document.getElementById('fitDebug');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fitDebug';
+    el.style.cssText = 'position:fixed;top:4px;left:4px;z-index:999;background:rgba(0,0,0,.85);color:#6FCF97;font-family:monospace;font-size:11px;padding:6px 10px;border-radius:6px;pointer-events:none;';
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+}
+function removeFitDebug(){
+  const el = document.getElementById('fitDebug');
+  if (el) el.remove();
+}
+
+function buildLegend(aux){
+  const groupsPresent = new Set(aux.map(k=>AUX_META[k].group));
+  const items = [
+    {dot:'var(--oct)', label:'thumb octave key', always:true},
+    {dot:'var(--lh)', label:'left hand', always:true},
+    {dot:'var(--rh)', label:'right hand', always:true},
+    {dot:'var(--low)', label:'low pinky keys', show: groupsPresent.has('low')},
+    {dot:'var(--side)', label:'side / bis keys', show: groupsPresent.has('side')},
+    {dot:'var(--palm)', label:'palm keys', show: groupsPresent.has('palm')},
+  ];
+  legendEl.innerHTML = items.filter(i=>i.always||i.show)
+    .map(i=>`<span><span class="dot" style="background:${i.dot}"></span>${i.label}</span>`).join('');
+}
+
+// A trilled key doesn't just get pressed — it toggles rapidly, so it's drawn as a zigzag
+// instead of a solid bar, spanning the same time-width any other bar would.
+function makeTrillZigzag(widthPx, colorClass){
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const w = Math.max(widthPx, 6);
+  const h = 22;
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.classList.add('trill-zigzag', colorClass);
+  svg.style.width = w + 'px';
+
+  const step = 9;
+  const amp = h * 0.36;
+  const mid = h / 2;
+  let d = `M0,${mid}`;
+  let x = 0, up = true;
+  while (x < w) {
+    x = Math.min(x + step, w);
+    d += ` L${x},${up ? mid - amp : mid + amp}`;
+    up = !up;
+  }
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('d', d);
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke-width', '3');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  path.classList.add('trill-stroke');
+  svg.appendChild(path);
+  return svg;
+}
+
+function buildBars(){
+  buildLanes();
+  Object.keys(elLanes).forEach(l=> elLanes[l].innerHTML = '');
+  let barCount = 0;
+  events.forEach(ev=>{
+    if (ev.trill) {
+      const trillInfo = getTrillInfo(ev.key, ev.trillTarget);
+      const allKeys = new Set([...trillInfo.baseFingering, ...trillInfo.targetFingering]);
+      if (allKeys.size === 0) {
+        const openBar = document.createElement('div');
+        openBar.className = 'open-bar';
+        openBar.style.left = (ev.start*pxPerSec) + 'px';
+        openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 4) + 'px';
+        elLanes['__open'].appendChild(openBar);
+        barCount++;
+        return;
+      }
+      allKeys.forEach(k=>{
+        const track = elLanes[k];
+        if (!track) return;
+        const cls = BASE_LANE_CLASS[k] || (AUX_META[k] && AUX_META[k].className) || 'lh';
+        const left = ev.start*pxPerSec;
+        const width = Math.max(ev.dur*pxPerSec - 3, 4);
+        if (trillInfo.toggleKeys.has(k)) {
+          const zz = makeTrillZigzag(width, cls);
+          zz.style.left = left + 'px';
+          track.appendChild(zz);
+        } else {
+          const bar = document.createElement('div');
+          bar.className = 'bar ' + cls;
+          bar.style.left = left + 'px';
+          bar.style.width = width + 'px';
+          track.appendChild(bar);
+        }
+        barCount++;
+      });
+      return;
+    }
+    const resolved = getFingering(ev.key);
+    const fingering = resolved.keys;
+    if (fingering.length === 0 && !resolved.missing) {
+      // Open note — no key lights up any lane, so show a hollow bar spanning the
+      // whole highway instead, otherwise these notes give no advance warning at all.
+      const openBar = document.createElement('div');
+      openBar.className = 'open-bar';
+      openBar.style.left = (ev.start*pxPerSec) + 'px';
+      openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 4) + 'px';
+      elLanes['__open'].appendChild(openBar);
+      barCount++;
+      return;
+    }
+    fingering.forEach(k=>{
+      const track = elLanes[k];
+      if (!track) return;
+      const cls = BASE_LANE_CLASS[k] || (AUX_META[k] && AUX_META[k].className) || 'lh';
+      const bar = document.createElement('div');
+      bar.className = 'bar ' + cls;
+      bar.style.left = (ev.start*pxPerSec) + 'px';
+      bar.style.width = Math.max(ev.dur*pxPerSec - 3, 4) + 'px';
+      track.appendChild(bar);
+      barCount++;
+    });
+  });
+  songDuration = events.length ? events[events.length-1].start + events[events.length-1].dur : 0;
+  return barCount;
+}
+
+function currentTime(){
+  if (!audioCtx) return pausedAt;
+  if (!playing) return pausedAt;
+  return pausedAt + (audioCtx.currentTime - startCtxTime) * parseFloat(speed.value);
+}
+
+function renderAt(t){
+  const offsetPx = t*pxPerSec;
+  Object.keys(elLanes).forEach(l=> elLanes[l].style.transform = `translateX(${-offsetPx}px)`);
+
+  const active = events.find(ev => t >= ev.start && t < ev.start+ev.dur);
+  if (active && active.trill) {
+    noteNameEl.textContent = active.key.replace(/[0-9]/,'');
+    const trillInfo = getTrillInfo(active.key, active.trillTarget);
+    chipsEl.innerHTML = '';
+    const c = document.createElement('span');
+    c.className = 'chip on';
+    c.textContent = (trillInfo.explicit ? 'tremolo ~ ' : 'trill ~ ') + trillInfo.targetKey.replace(/[0-9]/,'');
+    chipsEl.appendChild(c);
+    if (!trillInfo.explicit) {
+      const c2 = document.createElement('span');
+      c2.className = 'chip';
+      c2.textContent = 'estimated a whole step — verify';
+      chipsEl.appendChild(c2);
+    }
+  } else if (active) {
+    noteNameEl.textContent = active.key.replace(/[0-9]/,'');
+    const resolved = getFingering(active.key);
+    const aux = resolved.keys.filter(k=>AUX_LABELS[k]);
+    chipsEl.innerHTML = '';
+    aux.forEach(k=>{
+      const c = document.createElement('span');
+      c.className = 'chip on';
+      c.textContent = AUX_LABELS[k];
+      chipsEl.appendChild(c);
+    });
+    if (APPROX_NOTES.has(resolved.resolvedKey)) {
+      const c = document.createElement('span');
+      c.className = 'chip';
+      c.textContent = 'needs optional high F# key — not on all altos';
+      chipsEl.appendChild(c);
+    }
+    if (resolved.adjusted) {
+      const c = document.createElement('span');
+      c.className = 'chip';
+      c.textContent = 'octave adjusted — check register';
+      chipsEl.appendChild(c);
+    }
+    if (resolved.missing) {
+      const c = document.createElement('span');
+      c.className = 'chip';
+      c.textContent = 'outside known range';
+      chipsEl.appendChild(c);
+    }
+    if (!resolved.missing && resolved.keys.length === 0) {
+      const c = document.createElement('span');
+      c.className = 'chip on';
+      c.textContent = 'open note — no keys';
+      chipsEl.appendChild(c);
+    }
+  } else {
+    noteNameEl.textContent = '–';
+    chipsEl.innerHTML = '';
+  }
+
+  scrub.value = songDuration ? Math.min(1000, (t/songDuration)*1000) : 0;
+  timeLabel.textContent = fmtTime(t) + ' / ' + fmtTime(songDuration);
+  fsScrub.value = scrub.value;
+  fsTimeLabel.textContent = timeLabel.textContent;
+}
+
+function tick(){
+  const t = currentTime();
+  renderAt(t);
+  scheduleUpcoming();
+  if (t >= songDuration) {
+    stopPlayback(true);
+    return;
+  }
+  rafId = requestAnimationFrame(tick);
+}
+
+// ---------- Audio ----------
+function midiFreq(midi){ return 440 * Math.pow(2, (midi-69)/12); }
+function keyToMidi(key){
+  const m = key.match(/^([A-G]#?b?)(-?\d+)$/);
+  const pc = m[1], octave = parseInt(m[2],10);
+  const idx = NOTE_NAMES.indexOf(pc);
+  return (octave+1)*12 + idx;
+}
+
+// A hand-tuned harmonic series (odd + even mix, moderate rolloff) that reads much more like a
+// reed instrument than a bare oscillator — a plain wave's harmonics just scale up with pitch,
+// which is exactly why a raw tone sounds thin/buzzy on the higher notes but a real sax doesn't.
+let saxWave = null;
+function getSaxWave(){
+  if (saxWave) return saxWave;
+  const amps = [0, 1, 0.62, 0.38, 0.30, 0.20, 0.14, 0.10, 0.075, 0.05, 0.035, 0.025, 0.016, 0.01];
+  const real = new Float32Array(amps.length);
+  const imag = new Float32Array(amps.length);
+  amps.forEach((a,i)=>{ imag[i] = a; });
+  saxWave = audioCtx.createPeriodicWave(real, imag, { disableNormalization: false });
+  return saxWave;
+}
+
+let noiseBuffer = null;
+function getNoiseBuffer(){
+  if (noiseBuffer) return noiseBuffer;
+  const len = Math.floor(audioCtx.sampleRate * 0.09);
+  noiseBuffer = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i=0;i<len;i++) data[i] = (Math.random()*2-1) * Math.pow(1 - i/len, 1.6);
+  return noiseBuffer;
+}
+
+function playSaxNote(when, dur, midi){
+  const freq = midiFreq(midi);
+
+  const osc = audioCtx.createOscillator();
+  osc.setPeriodicWave(getSaxWave());
+  osc.frequency.value = freq;
+
+  // Keeps the tone warm rather than buzzy — cutoff rises gently with pitch instead of
+  // letting every harmonic of a high note ring out unfiltered.
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = Math.min(2400 + freq*0.55, 5200);
+  filter.Q.value = 0.6;
+
+  const gain = audioCtx.createGain();
+  const attack = Math.min(0.02, dur*0.3);
+  const release = Math.min(0.06, dur*0.3);
+  const sustain = 0.16;
+  gain.gain.setValueAtTime(0, when);
+  gain.gain.linearRampToValueAtTime(sustain, when+attack);
+  gain.gain.setValueAtTime(sustain, when + Math.max(dur-release, attack));
+  gain.gain.linearRampToValueAtTime(0, when+dur);
+
+  osc.connect(filter).connect(gain).connect(audioCtx.destination);
+  osc.start(when);
+  osc.stop(when+dur+0.05);
+  scheduledOsc.push(osc);
+
+  // Subtle vibrato that eases in, the way a player settles into a held note rather than
+  // wobbling from the very start of every note.
+  if (dur > 0.32) {
+    const lfo = audioCtx.createOscillator();
+    lfo.frequency.value = 5.4;
+    const lfoGain = audioCtx.createGain();
+    lfoGain.gain.setValueAtTime(0, when);
+    lfoGain.gain.linearRampToValueAtTime(0, when+0.16);
+    lfoGain.gain.linearRampToValueAtTime(10, when+0.4);
+    lfo.connect(lfoGain).connect(osc.detune);
+    lfo.start(when);
+    lfo.stop(when+dur+0.05);
+    scheduledOsc.push(lfo);
+  }
+
+  // A soft breath/reed chiff right at the attack — this is what mainly reads as "wind
+  // instrument" rather than "synthesizer," especially on shorter notes.
+  const noiseSrc = audioCtx.createBufferSource();
+  noiseSrc.buffer = getNoiseBuffer();
+  const noiseFilter = audioCtx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.value = Math.min(freq*1.6, 4500);
+  noiseFilter.Q.value = 0.7;
+  const noiseGain = audioCtx.createGain();
+  noiseGain.gain.setValueAtTime(0.045, when);
+  noiseGain.gain.linearRampToValueAtTime(0, when+0.07);
+  noiseSrc.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
+  noiseSrc.start(when);
+  noiseSrc.stop(when+0.1);
+  scheduledOsc.push(noiseSrc);
+}
+
+function scheduleAudio(fromTime){
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  clearScheduledAudio();
+  nextScheduleIdx = events.findIndex(ev => ev.start + ev.dur > fromTime);
+  if (nextScheduleIdx === -1) nextScheduleIdx = events.length;
+  scheduleUpcoming();
+}
+
+// Only schedules the next SCHEDULE_HORIZON seconds of song-time worth of notes at a time,
+// instead of every remaining oscillator in the whole song — keeps play/pause snappy on long songs.
+function scheduleUpcoming(){
+  if (!playing || !soundToggle.checked) return;
+  const rate = parseFloat(speed.value);
+  const nowSongTime = currentTime();
+  const horizon = nowSongTime + SCHEDULE_HORIZON;
+  while (nextScheduleIdx < events.length && events[nextScheduleIdx].start < horizon) {
+    const ev = events[nextScheduleIdx];
+    nextScheduleIdx++;
+    const delay = Math.max(0, (ev.start - nowSongTime)/rate);
+    const dur = ev.dur/rate;
+    const when = audioCtx.currentTime + delay;
+    if (ev.trill) {
+      // Actually alternate the audio between the two pitches, not just show it visually —
+      // step duration scales with the practice-speed slider so a slowed-down trill sounds
+      // as slow as the rest of the slowed-down song.
+      const targetKey = getTrillInfo(ev.key, ev.trillTarget).targetKey;
+      const baseMidi = keyToMidi(ev.key) - currentTranspose();
+      const targetMidi = keyToMidi(targetKey) - currentTranspose();
+      const baseStepSec = 0.13;
+      const stepSec = baseStepSec / rate;
+      const steps = Math.max(2, Math.round(dur / stepSec));
+      const actualStep = dur / steps;
+      for (let i = 0; i < steps; i++) {
+        const stepMidi = (i % 2 === 0) ? baseMidi : targetMidi;
+        playSaxNote(when + i*actualStep, actualStep, stepMidi);
+      }
+    } else {
+      const midi = keyToMidi(ev.key) - currentTranspose();
+      playSaxNote(when, dur, midi);
+    }
+  }
+}
+function clearScheduledAudio(){
+  scheduledOsc.forEach(o=>{ try{o.stop();}catch(e){} });
+  scheduledOsc = [];
+}
+
+// ---------- Playback control ----------
+function startPlayback(){
+  if (!events.length) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  audioCtx.resume();
+  startCtxTime = audioCtx.currentTime;
+  playing = true;
+  playBtn.textContent = '⏸ Pause';
+  fsPlayBtn.textContent = '⏸';
+  scheduleAudio(pausedAt);
+  rafId = requestAnimationFrame(tick);
+}
+function stopPlayback(finished){
+  playing = false;
+  playBtn.textContent = '▶ Play';
+  fsPlayBtn.textContent = '▶';
+  if (rafId) cancelAnimationFrame(rafId);
+  clearScheduledAudio();
+  if (finished) { pausedAt = 0; renderAt(0); }
+}
+function pausePlayback(){
+  pausedAt = currentTime();
+  playing = false;
+  playBtn.textContent = '▶ Play';
+  fsPlayBtn.textContent = '▶';
+  if (rafId) cancelAnimationFrame(rafId);
+  clearScheduledAudio();
+}
+
+playBtn.addEventListener('click', ()=>{
+  if (playing) pausePlayback();
+  else startPlayback();
+});
+restartBtn.addEventListener('click', ()=>{
+  pausePlayback();
+  pausedAt = 0;
+  renderAt(0);
+});
+fsPlayBtn.addEventListener('click', ()=>{
+  if (playing) pausePlayback();
+  else startPlayback();
+});
+fsRestartBtn.addEventListener('click', ()=>{
+  pausePlayback();
+  pausedAt = 0;
+  renderAt(0);
+});
+
+function isCurrentlyFullscreen(){
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
+}
+function syncFullscreenBtnLabel(){
+  fullscreenBtn.textContent = isCurrentlyFullscreen() ? '⛶ Exit fullscreen' : '⛶ Fullscreen';
+  document.body.classList.toggle('is-fullscreen', isCurrentlyFullscreen());
+}
+function showFsError(msg){
+  let el = document.getElementById('fsError');
+  if (!el) {
+    el = document.createElement('span');
+    el.id = 'fsError';
+    el.className = 'fs-error';
+    fullscreenBtn.insertAdjacentElement('afterend', el);
+  }
+  el.textContent = msg;
+}
+fullscreenBtn.addEventListener('click', ()=>{
+  if (!isCurrentlyFullscreen()) {
+    const target = document.documentElement;
+    const req = target.requestFullscreen || target.webkitRequestFullscreen;
+    if (!req) { showFsError("This browser doesn't support fullscreen."); return; }
+    const result = req.call(target);
+    if (result && result.catch) {
+      result.catch(err => showFsError('Fullscreen blocked: ' + (err && err.message ? err.message : 'try again, or press F11 for browser fullscreen instead.')));
+    }
+  } else {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) exit.call(document);
+  }
+});
+['fullscreenchange','webkitfullscreenchange'].forEach(evt=>{
+  document.addEventListener(evt, ()=>{
+    syncFullscreenBtnLabel();
+    const el = document.getElementById('fsError');
+    if (el && isCurrentlyFullscreen()) el.remove();
+    fitLanesToScreen();
+    // lane heights/label widths change size in fullscreen CSS, so bar positions need a repaint
+    renderAt(currentTime());
+  });
+});
+window.addEventListener('resize', ()=>{ fitLanesToScreen(); renderAt(currentTime()); });
+scrub.addEventListener('input', ()=>{
+  const t = (scrub.value/1000)*songDuration;
+  pausedAt = t;
+  renderAt(t);
+  if (playing) { pausePlayback(); startPlayback(); }
+});
+fsScrub.addEventListener('input', ()=>{
+  const t = (fsScrub.value/1000)*songDuration;
+  pausedAt = t;
+  renderAt(t);
+  if (playing) { pausePlayback(); startPlayback(); }
+});
+function updateTempoDisplay(){
+  const bpm = Math.round(songBaseTempo * parseFloat(speed.value));
+  bpmInput.value = bpm;
+  speedVal.textContent = `(${parseFloat(speed.value).toFixed(2)}× of ${Math.round(songBaseTempo)} bpm original)`;
+  fsSpeed.value = speed.value;
+  fsBpmReadout.textContent = bpm;
+}
+
+speed.addEventListener('input', ()=>{
+  updateTempoDisplay();
+  if (playing) { pausedAt = currentTime(); pausePlayback(); startPlayback(); }
+});
+fsSpeed.addEventListener('input', ()=>{
+  speed.value = fsSpeed.value;
+  updateTempoDisplay();
+  if (playing) { pausedAt = currentTime(); pausePlayback(); startPlayback(); }
+});
+bpmInput.addEventListener('change', ()=>{
+  let bpm = parseFloat(bpmInput.value);
+  if (!isFinite(bpm)) bpm = songBaseTempo;
+  bpm = Math.min(Math.max(bpm, 1), 250);
+  bpmInput.value = bpm;
+  let ratio = bpm / songBaseTempo;
+  ratio = Math.min(Math.max(ratio, parseFloat(speed.min)), parseFloat(speed.max));
+  speed.value = ratio;
+  updateTempoDisplay();
+  if (playing) { pausedAt = currentTime(); pausePlayback(); startPlayback(); }
+});
+soundToggle.addEventListener('change', ()=>{
+  if (playing) { pausedAt = currentTime(); pausePlayback(); startPlayback(); }
+});
+
+function loadEvents(evs, tempo, label){
+  stopPlayback(true);
+  events = evs;
+  lastLoadedXmlText = null; // callers that have real xml set this again right after calling loadEvents
+  document.getElementById('saveNameInput').disabled = true;
+  document.getElementById('saveSongBtn').disabled = true;
+  songBaseTempo = tempo || 120;
+  // The slider itself is a ratio of songBaseTempo, so its min/max are recomputed per song
+  // to make its actual reachable range exactly 1-250 bpm, matching the bpm number field.
+  speed.min = (1 / songBaseTempo).toFixed(4);
+  speed.max = (250 / songBaseTempo).toFixed(4);
+  fsSpeed.min = speed.min;
+  fsSpeed.max = speed.max;
+  speed.value = Math.min(Math.max(1, parseFloat(speed.min)), parseFloat(speed.max));
+  updateTempoDisplay();
+  const barCount = buildBars();
+  pausedAt = 0;
+  renderAt(0);
+  playBtn.disabled = false;
+  restartBtn.disabled = false;
+  scrub.disabled = false;
+  statusEl.className = 'status ok';
+  statusEl.textContent = label + ` (${barCount} fingering bars placed)`;
+}
+
+document.getElementById('demoBtn').addEventListener('click', ()=>{
+  const {events, tempo} = demoSong();
+  loadEvents(events, tempo, 'Loaded demo: Ode to Joy (opening phrase) — only needs the 7 main keys.');
+});
+document.getElementById('demoBtn2').addEventListener('click', ()=>{
+  const {events, tempo} = demoSongWide();
+  loadEvents(events, tempo, 'Loaded demo: a wider-range phrase — watch the low and palm key rows appear.');
+});
+document.getElementById('demoBtn3').addEventListener('click', ()=>{
+  const {events, tempo} = demoSongTrill();
+  loadEvents(events, tempo, 'Loaded demo: a held trill on F#4 — watch for the zigzag.');
+});
+
+async function extractXmlFromMxl(arrayBuffer){
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  // A compressed MusicXML (.mxl) is a zip with META-INF/container.xml pointing
+  // to the real score file; fall back to the first top-level .xml if that's missing.
+  let targetPath = null;
+  const containerFile = zip.file('META-INF/container.xml');
+  if (containerFile) {
+    const containerXml = await containerFile.async('string');
+    const doc = new DOMParser().parseFromString(containerXml, 'application/xml');
+    const rootfile = doc.querySelector('rootfile');
+    if (rootfile) targetPath = rootfile.getAttribute('full-path');
+  }
+  if (!targetPath) {
+    targetPath = Object.keys(zip.files).find(name =>
+      /\.(xml|musicxml)$/i.test(name) && !name.startsWith('META-INF/'));
+  }
+  if (!targetPath || !zip.file(targetPath)) {
+    throw new Error("Couldn't find a MusicXML file inside that .mxl archive.");
+  }
+  return zip.file(targetPath).async('string');
+}
+
+function readFileAsArrayBuffer(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result);
+    reader.onerror = ()=> reject(new Error('Could not open that file.'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+document.getElementById('fileInput').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  stopPlayback(true);
+  if (/\.pdf$/i.test(file.name)) {
+    statusEl.className = 'status error';
+    statusEl.textContent = "PDF pages are images, not note data, so this can't read them directly. Import the PDF into a free tool like MuseScore (File → Import), then export it as MusicXML and upload that file here instead.";
+    return;
+  }
+  if (/\.mxl$/i.test(file.name)) {
+    readFileAsArrayBuffer(file)
+      .then(buf => extractXmlFromMxl(buf))
+      .then(xmlText=>{
+        try{
+          const {events: evs, tempo} = parseMusicXML(xmlText);
+          loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.`);
+          lastLoadedXmlText = xmlText;
+          document.getElementById('saveNameInput').disabled = false;
+          document.getElementById('saveNameInput').value = file.name.replace(/\.(xml|musicxml|mxl)$/i,'');
+          document.getElementById('saveSongBtn').disabled = false;
+        }catch(err){
+          statusEl.className = 'status error';
+          statusEl.textContent = 'Could not read that file: ' + err.message;
+        }
+      }).catch(err=>{
+        statusEl.className = 'status error';
+        statusEl.textContent = 'Could not open that .mxl file: ' + err.message;
+      });
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const {events: evs, tempo} = parseMusicXML(reader.result);
+      loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.`);
+      lastLoadedXmlText = reader.result;
+      document.getElementById('saveNameInput').disabled = false;
+      document.getElementById('saveNameInput').value = file.name.replace(/\.(xml|musicxml|mxl)$/i,'');
+      document.getElementById('saveSongBtn').disabled = false;
+    }catch(err){
+      statusEl.className = 'status error';
+      statusEl.textContent = 'Could not read that file: ' + err.message;
+    }
+  };
+  reader.onerror = ()=>{
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Could not open that file.';
+  };
+  reader.readAsText(file);
+});
+
+// ---------- Saved songs (browser localStorage — this file runs standalone, on-device) ----------
+const SAVE_KEY_PREFIX = 'saxhighway:song:';
+const saveStatusEl = document.getElementById('saveStatus');
+const savedSongsListEl = document.getElementById('savedSongsList');
+const saveNameInput = document.getElementById('saveNameInput');
+const saveSongBtn = document.getElementById('saveSongBtn');
+
+function storageAvailable(){
+  try {
+    const t = '__saxhighway_test__';
+    localStorage.setItem(t, '1');
+    localStorage.removeItem(t);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function listSavedSongs(){
+  const out = [];
+  try {
+    for (let i=0; i<localStorage.length; i++){
+      const k = localStorage.key(i);
+      if (k && k.indexOf(SAVE_KEY_PREFIX) === 0) out.push(k.slice(SAVE_KEY_PREFIX.length));
+    }
+  } catch(e) { /* storage unavailable */ }
+  return out.sort((a,b)=> a.localeCompare(b));
+}
+
+function renderSavedSongs(){
+  const names = listSavedSongs();
+  if (!storageAvailable()) {
+    savedSongsListEl.innerHTML = '<span class="saved-empty">This browser has local storage disabled, so saving isn\'t available here.</span>';
+    return;
+  }
+  if (!names.length) {
+    savedSongsListEl.innerHTML = '<span class="saved-empty">No songs saved yet — load one above, then save it here.</span>';
+    return;
+  }
+  savedSongsListEl.innerHTML = '';
+  names.forEach(name=>{
+    let meta = '';
+    try {
+      const raw = localStorage.getItem(SAVE_KEY_PREFIX+name);
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data.savedAt) meta = new Date(data.savedAt).toLocaleDateString();
+      }
+    } catch(e) {}
+    const row = document.createElement('div');
+    row.className = 'saved-row';
+    row.innerHTML = `<span class="saved-name">${name}</span><span class="saved-meta">${meta}</span>`;
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'secondary tiny'; loadBtn.type = 'button'; loadBtn.textContent = 'Load';
+    loadBtn.addEventListener('click', ()=> loadSavedSong(name));
+    const delBtn = document.createElement('button');
+    delBtn.className = 'secondary tiny'; delBtn.type = 'button'; delBtn.textContent = 'Delete';
+    delBtn.addEventListener('click', ()=> deleteSavedSong(name));
+    row.appendChild(loadBtn);
+    row.appendChild(delBtn);
+    savedSongsListEl.appendChild(row);
+  });
+}
+
+function loadSavedSong(name){
+  try {
+    const raw = localStorage.getItem(SAVE_KEY_PREFIX+name);
+    if (!raw) throw new Error('That saved song is gone — try refreshing the list.');
+    const data = JSON.parse(raw);
+    const {events: evs, tempo} = parseMusicXML(data.xml);
+    loadEvents(evs, tempo, `Loaded saved song "${name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.`);
+    lastLoadedXmlText = data.xml;
+    saveNameInput.disabled = false;
+    saveNameInput.value = name;
+    saveSongBtn.disabled = false;
+  } catch(err) {
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Could not load saved song: ' + err.message;
+  }
+}
+
+function deleteSavedSong(name){
+  try { localStorage.removeItem(SAVE_KEY_PREFIX+name); } catch(e) {}
+  renderSavedSongs();
+}
+
+saveSongBtn.addEventListener('click', ()=>{
+  const name = saveNameInput.value.trim();
+  if (!name) {
+    saveStatusEl.className = 'status error';
+    saveStatusEl.textContent = 'Give it a name first.';
+    return;
+  }
+  if (!lastLoadedXmlText) {
+    saveStatusEl.className = 'status error';
+    saveStatusEl.textContent = 'Load a song from a file first — demo songs have no file to save.';
+    return;
+  }
+  try {
+    localStorage.setItem(SAVE_KEY_PREFIX+name, JSON.stringify({ xml: lastLoadedXmlText, savedAt: Date.now() }));
+    saveStatusEl.className = 'status ok';
+    saveStatusEl.textContent = `Saved "${name}".`;
+    renderSavedSongs();
+  } catch(err) {
+    saveStatusEl.className = 'status error';
+    saveStatusEl.textContent = "Couldn't save — storage may be full or disabled in this browser.";
+  }
+});
+
+// initial paint
+buildLegend([]);
+updateTempoDisplay();
+renderAt(0);
+renderSavedSongs();
+})();
+</script>
+
+<script>
+// Subscribe button — calls the Cloudflare Pages Function (functions/api/create-checkout-session.js),
+// which talks to Stripe using the secret key stored in Cloudflare, never in this file.
+(function(){
+  const btn = document.getElementById('subscribeBtn');
+  const msg = document.getElementById('checkoutMsg');
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('checkout') === 'success') {
+    msg.textContent = "Payment received — thanks for subscribing!";
+    msg.style.color = '#6FCF97';
+  } else if (params.get('checkout') === 'cancelled') {
+    msg.textContent = "Checkout cancelled — no charge was made.";
+  }
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Loading…';
+    msg.textContent = '';
+    try {
+      const res = await fetch('/api/create-checkout-session', { method: 'POST' });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        msg.textContent = data.error || 'Something went wrong starting checkout.';
+        msg.style.color = '#E8637A';
+      }
+    } catch (err) {
+      msg.textContent = "Couldn't reach the server — try again in a moment.";
+      msg.style.color = '#E8637A';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  });
+})();
+</script>
+</body>
+</html>
