@@ -275,7 +275,7 @@ function landingPage() {
   .msg{font-size:13px; margin-top:10px; min-height:16px; line-height:1.5;}
   .msg a{ color:inherit; }
   .divider{ text-align:center; color:var(--ink-dim); font-size:12.5px; margin:28px 0 16px; }
-  .price{ color:var(--brass); font-weight:600; }
+  .price{ color:#20150A; font-weight:700; }
 </style>
 </head>
 <body>
