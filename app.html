@@ -884,6 +884,64 @@ function buildLanes(){
   });
 
   buildLegend(aux);
+  fitLanesToScreen();
+}
+
+// Instead of trusting CSS flexbox to shrink lanes to fit (which has been unreliable across
+// browsers), directly calculate and set each lane's exact height in JS. This guarantees
+// everything fits the actual screen, regardless of how many lanes a song needs.
+function fitLanesToScreen(){
+  if (!document.body.classList.contains('is-fullscreen')) {
+    // leave default (non-fullscreen) view under normal CSS control
+    document.querySelectorAll('#lanes > .lane').forEach(l=>{ l.style.flex=''; l.style.height=''; });
+    removeFitDebug();
+    return;
+  }
+  const lanes = document.querySelectorAll('#lanes > .lane');
+  const dividers = document.querySelectorAll('#lanes > .lane-divider');
+  if (!lanes.length) return;
+
+  // Measure real values instead of guessing constants — this is what went wrong last time.
+  const lanesStyle = getComputedStyle(lanesEl);
+  const padTop = parseFloat(lanesStyle.paddingTop) || 0;
+  const padBottom = parseFloat(lanesStyle.paddingBottom) || 0;
+  const lanesRect = lanesEl.getBoundingClientRect();
+
+  // Temporarily measure a divider's real rendered height (they have no inline height set).
+  let dividerHeight = 13;
+  if (dividers.length) {
+    const dr = dividers[0].getBoundingClientRect();
+    if (dr.height > 0) dividerHeight = dr.height + 8; // include its own margin
+  }
+
+  const laneMargin = 12; // 6px top + 6px bottom, matches .lane CSS margin
+  const safetyBuffer = 8;
+
+  const contentHeight = lanesRect.height - padTop - padBottom;
+  const available = contentHeight - (dividers.length * dividerHeight) - safetyBuffer;
+  const perLane = Math.max(12, Math.floor(available / lanes.length) - laneMargin);
+
+  lanes.forEach(l=>{
+    l.style.flex = 'none';
+    l.style.height = perLane + 'px';
+  });
+
+  showFitDebug(`innerHeight=${window.innerHeight} lanesRect.height=${Math.round(lanesRect.height)} padTop=${padTop} padBottom=${padBottom} dividerH=${Math.round(dividerHeight)} lanes=${lanes.length} perLane=${perLane}px actual=${Math.round(lanes[0].getBoundingClientRect().height)}px`);
+}
+
+function showFitDebug(text){
+  let el = document.getElementById('fitDebug');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'fitDebug';
+    el.style.cssText = 'position:fixed;top:4px;left:4px;z-index:999;background:rgba(0,0,0,.85);color:#6FCF97;font-family:monospace;font-size:11px;padding:6px 10px;border-radius:6px;pointer-events:none;';
+    document.body.appendChild(el);
+  }
+  el.textContent = text;
+}
+function removeFitDebug(){
+  const el = document.getElementById('fitDebug');
+  if (el) el.remove();
 }
 
 function buildLegend(aux){
@@ -1306,11 +1364,12 @@ fullscreenBtn.addEventListener('click', ()=>{
     syncFullscreenBtnLabel();
     const el = document.getElementById('fsError');
     if (el && isCurrentlyFullscreen()) el.remove();
+    fitLanesToScreen();
     // lane heights/label widths change size in fullscreen CSS, so bar positions need a repaint
     renderAt(currentTime());
   });
 });
-window.addEventListener('resize', ()=> renderAt(currentTime()));
+window.addEventListener('resize', ()=>{ fitLanesToScreen(); renderAt(currentTime()); });
 scrub.addEventListener('input', ()=>{
   const t = (scrub.value/1000)*songDuration;
   pausedAt = t;
