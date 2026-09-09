@@ -35,6 +35,13 @@ export default {
       });
     }
  
+    if (url.pathname === "/demo") {
+      // Public, no-login demo — same app file, but its own JS detects this path
+      // and disables uploads / shows only the built-in public-domain pieces.
+      const assetReq = new Request(new URL("/app.html", request.url), request);
+      return env.ASSETS.fetch(assetReq);
+    }
+ 
     const session = await getSession(request, env);
  
     if (url.pathname === "/app.html") {
@@ -221,20 +228,54 @@ function landingPage() {
 <meta name="twitter:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
 <meta name="twitter:description" content="Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide, timed to the music — see exactly which keys to press for any song on alto sax.">
  
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body{margin:0;background:#10161C;color:#EFE9DD;font-family:'JetBrains Mono',monospace;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
-  .box{max-width:460px;width:100%;}
-  h1{font-family:Georgia,serif;font-size:32px;margin:0 0 6px;}
-  h1 em{color:#D9A24B;font-style:italic;}
-  .tagline{color:#EFE9DD;font-size:15px;margin:0 0 14px;font-weight:600;}
-  p{color:#9BA8B2;font-size:13.5px;line-height:1.65;}
-  ul{color:#9BA8B2;font-size:13.5px;line-height:1.75;margin:12px 0;padding-left:20px;}
-  li{margin-bottom:2px;}
-  button{width:100%;background:#D9A24B;color:#20150A;border:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;margin-top:8px;}
-  button.secondary{background:transparent;border:1px solid #2B3641;color:#EFE9DD;}
-  input{width:100%;background:#0E141A;border:1px solid #2B3641;border-radius:8px;color:#EFE9DD;padding:11px;font-family:inherit;font-size:14px;box-sizing:border-box;margin-top:14px;}
-  .msg{font-size:12.5px;margin-top:10px;min-height:16px;}
-  .divider{text-align:center;color:#9BA8B2;font-size:12px;margin:26px 0 16px;}
+  :root{
+    --bg:#10161C; --panel:#1B242D; --line:#2B3641; --ink:#F1EDE4; --ink-dim:#9BA8B2; --brass:#D9A24B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+    display:flex; align-items:center; justify-content:center; min-height:100vh; padding:28px;
+    background-image:
+      radial-gradient(1px 1px at 15% 20%, rgba(255,255,255,.3) 0, transparent 60%),
+      radial-gradient(1px 1px at 75% 12%, rgba(255,255,255,.22) 0, transparent 60%),
+      radial-gradient(1px 1px at 40% 75%, rgba(255,255,255,.25) 0, transparent 60%),
+      radial-gradient(1px 1px at 88% 60%, rgba(255,255,255,.18) 0, transparent 60%);
+  }
+  .box{max-width:440px; width:100%; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:36px 32px;}
+  h1{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:34px; margin:0 0 8px; letter-spacing:-.01em;}
+  h1 em{color:var(--brass); font-style:italic;}
+  .tagline{color:var(--ink); font-size:16px; margin:0 0 16px; font-weight:500; line-height:1.4;}
+  p{color:var(--ink-dim); font-size:14.5px; line-height:1.65; margin:0 0 14px;}
+  ul{color:var(--ink-dim); font-size:14px; line-height:1.8; margin:0 0 22px; padding-left:20px;}
+  li{margin-bottom:3px;}
+  button{
+    width:100%; background:var(--brass); color:#20150A; border:none; padding:13px;
+    border-radius:9px; font-weight:600; font-size:15px; cursor:pointer;
+    font-family:inherit; margin-top:10px; transition:filter .15s ease, transform .1s ease;
+  }
+  button:hover{ filter:brightness(1.08); }
+  button:active{ transform:scale(.99); }
+  button.secondary{ background:transparent; border:1px solid var(--line); color:var(--ink); font-weight:500; }
+  button.tertiary{
+    width:100%; background:transparent; border:none; color:var(--ink-dim);
+    font-family:inherit; font-size:13.5px; cursor:pointer; text-decoration:underline;
+    padding:8px; margin-top:4px;
+  }
+  button.tertiary:hover{ color:var(--ink); }
+  input{
+    width:100%; background:#0E141A; border:1px solid var(--line); border-radius:9px;
+    color:var(--ink); padding:12px; font-family:inherit; font-size:14.5px;
+    box-sizing:border-box; margin-top:14px;
+  }
+  input:focus{ outline:none; border-color:var(--brass); }
+  .msg{font-size:13px; margin-top:10px; min-height:16px; line-height:1.5;}
+  .msg a{ color:inherit; }
+  .divider{ text-align:center; color:var(--ink-dim); font-size:12.5px; margin:28px 0 16px; }
+  .price{ color:var(--brass); font-weight:600; }
 </style>
 </head>
 <body>
@@ -247,7 +288,8 @@ function landingPage() {
     <li>Slow the tempo down to isolate tricky passages</li>
     <li>Shows trills and extended-range fingerings, not just the basics</li>
   </ul>
-  <button id="subscribeBtn">Subscribe — $1.99/week</button>
+  <button id="subscribeBtn">Subscribe — <span class="price">$1.99/week</span></button>
+  <button class="tertiary" id="demoLink" type="button">Try it free first — no account needed</button>
   <div class="divider">— already subscribed? —</div>
   <input id="emailInput" type="email" placeholder="you@example.com">
   <button class="secondary" id="loginBtn">Access my account</button>
@@ -258,6 +300,10 @@ function landingPage() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('checkout') === 'cancelled') { msg.textContent = 'Checkout cancelled — no charge was made.'; }
   if (params.get('checkout') === 'incomplete' || params.get('checkout') === 'error') { msg.textContent = 'Something went wrong finishing checkout — try again.'; msg.style.color = '#E8637A'; }
+ 
+  document.getElementById('demoLink').addEventListener('click', () => {
+    window.location.href = '/demo';
+  });
  
   document.getElementById('subscribeBtn').addEventListener('click', async () => {
     msg.textContent = '';
