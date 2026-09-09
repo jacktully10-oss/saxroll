@@ -38,7 +38,11 @@ export default {
     if (url.pathname === "/demo") {
       // Public, no-login demo — same app file, but its own JS detects this path
       // and disables uploads / shows only the built-in public-domain pieces.
-      const assetReq = new Request(new URL("/app.html", request.url), request);
+      // Important: fetch the asset via the clean "/app" path, not "/app.html" —
+      // requesting the literal .html path gets a 307 from Cloudflare's asset layer
+      // (redirecting to the clean URL), which would otherwise leak straight through
+      // to the browser and change the visible URL away from /demo entirely.
+      const assetReq = new Request(new URL("/app", request.url), request);
       return env.ASSETS.fetch(assetReq);
     }
  
