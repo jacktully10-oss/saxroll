@@ -12,7 +12,7 @@
 //   (anything else)               -> served as a normal static file
  
 const PRICE_ID = "price_1UDOExDgfZTUGc5KxMifklMJ";
-const XML_CACHE_PRICE_ID = "price_1UE4EvDgfZTUGc5KzkjIjavw";   // $5 AUD one-time: personal XML cache + 3 sourced songs
+const XML_CACHE_PRICE_ID = "price_1UE4YXDgfZTUGc5KOoQ6Aqsw";   // $5 AUD one-time: personal XML cache + 3 sourced songs
 const XML_REQUEST_PRICE_ID = "price_1UE4FRDgfZTUGc5KIDPzwDPl"; // $3 AUD one-time: 3 sourced songs
 const COOKIE_NAME = "saxroll_session";
 const SESSION_DAYS = 7; // matches the weekly billing cycle — see note below
