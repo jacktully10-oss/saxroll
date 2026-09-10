@@ -7,13 +7,14 @@
 //   POST /api/checkout-xml-cache  -> one-time purchase: personal XML cache + 3 sourced songs
 //   POST /api/checkout-xml-request -> one-time purchase: 3 sourced songs
 //   GET  /api/checkout-complete   -> Stripe sends people back here after paying; logs them in
+//   POST /api/customer-portal     -> starts a Stripe Customer Portal session (manage/cancel), requires a session
 //   POST /api/login               -> "already subscribed" email check
 //   POST /api/logout              -> clears the session cookie
 //   (anything else)               -> served as a normal static file
  
 const PRICE_ID = "price_1UDOExDgfZTUGc5KxMifklMJ";
-const XML_CACHE_PRICE_ID = "price_1UE4YXDgfZTUGc5KOoQ6Aqsw";   // $5 AUD one-time: personal XML cache + 3 sourced songs
-const XML_REQUEST_PRICE_ID = "price_1UE4ZODgfZTUGc5KMciVf1Lo"; // $3 AUD one-time: 3 sourced songs
+const XML_CACHE_PRICE_ID = "price_1UE4EvDgfZTUGc5KzkjIjavw";   // $5 AUD one-time: personal XML cache + 3 sourced songs
+const XML_REQUEST_PRICE_ID = "price_1UE4FRDgfZTUGc5KIDPzwDPl"; // $3 AUD one-time: 3 sourced songs
 const COOKIE_NAME = "saxroll_session";
 const SESSION_DAYS = 7; // matches the weekly billing cycle — see note below
  
@@ -25,13 +26,18 @@ export default {
       return handleCheckout(request, env);
     }
     if (url.pathname === "/api/checkout-xml-cache" && request.method === "POST") {
-      return handleOneTimeCheckout(request, env, XML_CACHE_PRICE_ID, "3 songs to source? (email your cache too)");
+      return handleOneTimeCheckout(request, env, XML_CACHE_PRICE_ID, "3 songs to source? (email your cache too)", "Sax Roll: your XML cache request + 3 songs sourced. Email saxophoneroll@gmail.com with your cache.");
     }
     if (url.pathname === "/api/checkout-xml-request" && request.method === "POST") {
-      return handleOneTimeCheckout(request, env, XML_REQUEST_PRICE_ID, "Which 3 songs would you like sourced?");
+      return handleOneTimeCheckout(request, env, XML_REQUEST_PRICE_ID, "Which 3 songs would you like sourced?", "Sax Roll: 3 songs sourced for you. Check saxophoneroll@gmail.com if you have questions.");
     }
     if (url.pathname === "/api/checkout-complete" && request.method === "GET") {
       return handleCheckoutComplete(request, env);
+    }
+    if (url.pathname === "/api/customer-portal" && request.method === "POST") {
+      const session = await getSession(request, env);
+      if (!session) return jsonError("Not logged in.", 401);
+      return handleCustomerPortal(request, env, session.email);
     }
     if (url.pathname === "/api/login" && request.method === "POST") {
       return handleLogin(request, env);
@@ -118,7 +124,7 @@ async function handleCheckout(request, env) {
 // personally source/send the files afterward, so this just takes payment and collects
 // what they want via a Stripe Checkout custom field (shows up right in your Stripe
 // dashboard alongside the payment, no separate storage needed).
-async function handleOneTimeCheckout(request, env, priceId, fieldLabel) {
+async function handleOneTimeCheckout(request, env, priceId, fieldLabel, receiptDescription) {
   if (!env.STRIPE_SECRET_KEY) return jsonError("Server isn't configured (missing STRIPE_SECRET_KEY).", 500);
  
   const origin = new URL(request.url).origin;
@@ -133,6 +139,7 @@ async function handleOneTimeCheckout(request, env, priceId, fieldLabel) {
   params.append("custom_fields[0][label][custom]", fieldLabel);
   params.append("custom_fields[0][type]", "text");
   params.append("custom_fields[0][text][maximum_length]", "255");
+  params.append("payment_intent_data[description]", receiptDescription);
  
   try {
     const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -223,6 +230,57 @@ async function hasActiveSubscription(email, env) {
     }
   }
   return false;
+}
+ 
+// Opens the Stripe-hosted Customer Portal for the logged-in subscriber — self-serve
+// cancel, update card, view billing history, no need to email you directly.
+async function handleCustomerPortal(request, env, email) {
+  if (!env.STRIPE_SECRET_KEY) return jsonError("Server isn't configured (missing STRIPE_SECRET_KEY).", 500);
+ 
+  const custResp = await fetch(`https://api.stripe.com/v1/customers?email=${encodeURIComponent(email)}&limit=10`, {
+    headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
+  });
+  const custData = await custResp.json();
+  if (!custResp.ok || !custData.data?.length) {
+    return jsonError("Couldn't find a Stripe customer for your account.", 404);
+  }
+ 
+  // If this email somehow has more than one Stripe customer record, prefer whichever
+  // one actually has the active subscription, so the portal shows the right billing history.
+  let customerId = custData.data[0].id;
+  for (const customer of custData.data) {
+    const subResp = await fetch(`https://api.stripe.com/v1/subscriptions?customer=${customer.id}&status=active&limit=1`, {
+      headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
+    });
+    const subData = await subResp.json();
+    if (subResp.ok && subData.data?.length) {
+      customerId = customer.id;
+      break;
+    }
+  }
+ 
+  const origin = new URL(request.url).origin;
+  const params = new URLSearchParams();
+  params.append("customer", customerId);
+  params.append("return_url", `${origin}/app.html`);
+ 
+  try {
+    const resp = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params.toString(),
+    });
+    const portalSession = await resp.json();
+    if (!resp.ok) return jsonError(portalSession.error?.message || "Stripe rejected the request.", 500);
+    return new Response(JSON.stringify({ url: portalSession.url }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    return jsonError("Could not reach Stripe: " + err.message, 500);
+  }
 }
  
 // ---------- Sessions (signed cookie, no database needed) ----------
