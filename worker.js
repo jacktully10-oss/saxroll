@@ -1,4 +1,3 @@
-
 // SaxRoll Worker — now with real access control.
 //
 // Routes:
@@ -133,7 +132,7 @@ async function handleOneTimeCheckout(request, env, priceId, fieldLabel) {
   params.append("custom_fields[0][label][type]", "custom");
   params.append("custom_fields[0][label][custom]", fieldLabel);
   params.append("custom_fields[0][type]", "text");
-  params.append("custom_fields[0][text][maximum_length]", "500");
+  params.append("custom_fields[0][text][maximum_length]", "255");
  
   try {
     const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
