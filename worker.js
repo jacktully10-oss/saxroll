@@ -1,15 +1,20 @@
+
 // SaxRoll Worker — now with real access control.
 //
 // Routes:
 //   GET  /                        -> landing page (or redirect to /app.html if already logged in)
 //   GET  /app.html                -> the real app, ONLY if a valid session cookie is present
 //   POST /api/create-checkout-session  -> starts a Stripe subscription checkout
+//   POST /api/checkout-xml-cache  -> one-time purchase: personal XML cache + 3 sourced songs
+//   POST /api/checkout-xml-request -> one-time purchase: 3 sourced songs
 //   GET  /api/checkout-complete   -> Stripe sends people back here after paying; logs them in
 //   POST /api/login               -> "already subscribed" email check
 //   POST /api/logout              -> clears the session cookie
 //   (anything else)               -> served as a normal static file
  
 const PRICE_ID = "price_1UDOExDgfZTUGc5KxMifklMJ";
+const XML_CACHE_PRICE_ID = "price_1UE4EvDgfZTUGc5KzkjIjavw";   // $5 AUD one-time: personal XML cache + 3 sourced songs
+const XML_REQUEST_PRICE_ID = "price_1UE4FRDgfZTUGc5KIDPzwDPl"; // $3 AUD one-time: 3 sourced songs
 const COOKIE_NAME = "saxroll_session";
 const SESSION_DAYS = 7; // matches the weekly billing cycle — see note below
  
@@ -19,6 +24,12 @@ export default {
  
     if (url.pathname === "/api/create-checkout-session" && request.method === "POST") {
       return handleCheckout(request, env);
+    }
+    if (url.pathname === "/api/checkout-xml-cache" && request.method === "POST") {
+      return handleOneTimeCheckout(request, env, XML_CACHE_PRICE_ID, "3 songs to source? (email your cache too)");
+    }
+    if (url.pathname === "/api/checkout-xml-request" && request.method === "POST") {
+      return handleOneTimeCheckout(request, env, XML_REQUEST_PRICE_ID, "Which 3 songs would you like sourced?");
     }
     if (url.pathname === "/api/checkout-complete" && request.method === "GET") {
       return handleCheckoutComplete(request, env);
@@ -60,7 +71,15 @@ export default {
     // of a blocklist: nothing is reachable unless it's named above.
     const session = await getSession(request, env);
     if (!session) return Response.redirect(new URL("/", request.url), 302);
-    return env.ASSETS.fetch(request);
+ 
+    const assetResp = await env.ASSETS.fetch(request);
+    // Explicitly forbid caching this response anywhere (Cloudflare's edge, the browser,
+    // any intermediate proxy). If a previously-authenticated response for this exact path
+    // were ever cached, it could get served to a later, unauthenticated visitor — a cache
+    // hit skips this Worker entirely, so the session check above would never even run.
+    const resp = new Response(assetResp.body, assetResp);
+    resp.headers.set("Cache-Control", "private, no-store, no-cache, must-revalidate");
+    return resp;
   },
 };
  
@@ -76,6 +95,45 @@ async function handleCheckout(request, env) {
   params.append("line_items[0][quantity]", "1");
   params.append("success_url", `${origin}/api/checkout-complete?session_id={CHECKOUT_SESSION_ID}`);
   params.append("cancel_url", `${origin}/?checkout=cancelled`);
+ 
+  try {
+    const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: params.toString(),
+    });
+    const session = await resp.json();
+    if (!resp.ok) return jsonError(session.error?.message || "Stripe rejected the request.", 500);
+    return new Response(JSON.stringify({ url: session.url }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    return jsonError("Could not reach Stripe: " + err.message, 500);
+  }
+}
+ 
+// One-time (not subscription) purchases for the manual song-sourcing options — you
+// personally source/send the files afterward, so this just takes payment and collects
+// what they want via a Stripe Checkout custom field (shows up right in your Stripe
+// dashboard alongside the payment, no separate storage needed).
+async function handleOneTimeCheckout(request, env, priceId, fieldLabel) {
+  if (!env.STRIPE_SECRET_KEY) return jsonError("Server isn't configured (missing STRIPE_SECRET_KEY).", 500);
+ 
+  const origin = new URL(request.url).origin;
+  const params = new URLSearchParams();
+  params.append("mode", "payment");
+  params.append("line_items[0][price]", priceId);
+  params.append("line_items[0][quantity]", "1");
+  params.append("success_url", `${origin}/app.html?purchase=success`);
+  params.append("cancel_url", `${origin}/app.html?purchase=cancelled`);
+  params.append("custom_fields[0][key]", "song_requests");
+  params.append("custom_fields[0][label][type]", "custom");
+  params.append("custom_fields[0][label][custom]", fieldLabel);
+  params.append("custom_fields[0][type]", "text");
+  params.append("custom_fields[0][text][maximum_length]", "500");
  
   try {
     const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
@@ -220,17 +278,17 @@ function landingPage() {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sax Roll — Play Along on Alto Sax Without Reading Sheet Music</title>
-<meta name="description" content="Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide, timed to the music — see exactly which keys to press for any song on alto sax, no sheet-music reading required.">
+<meta name="description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax, no sheet-music reading required.">
 <link rel="canonical" href="https://saxroll.com/">
  
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://saxroll.com/">
 <meta property="og:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
-<meta property="og:description" content="Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide, timed to the music — see exactly which keys to press for any song on alto sax.">
+<meta property="og:description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax.">
  
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
-<meta name="twitter:description" content="Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide, timed to the music — see exactly which keys to press for any song on alto sax.">
+<meta name="twitter:description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax.">
  
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -286,9 +344,9 @@ function landingPage() {
 <div class="box">
   <h1>Sax <em>Roll</em></h1>
   <p class="tagline">Learn songs on alto sax without reading sheet music.</p>
-  <p>Upload any MusicXML file and Sax Roll turns it into a scrolling fingering guide — colored bars show exactly which keys to press, timed to the actual music, so you can play along with real songs from day one.</p>
+  <p>Turn <strong>any sheet music you've got</strong> — a PDF, a scan, or an already-digital file — into a scrolling fingering guide. Colored bars show exactly which keys to press, timed to the actual music, so you can play along with real songs from day one.</p>
   <ul>
-    <li>Works with any song you have as MusicXML — pop, jazz, classical</li>
+    <li>Works from any sheet music — PDF, scan, or MusicXML — pop, jazz, classical</li>
     <li>Slow the tempo down to isolate tricky passages</li>
     <li>Shows trills and extended-range fingerings, not just the basics</li>
   </ul>
