@@ -70,6 +70,15 @@ export default {
       });
     }
 
+    if (url.pathname === "/og-image.png") {
+      // Public on purpose, same reasoning as "/" and "/demo" above: browsers request
+      // favicons automatically with no session, and social-media link-preview crawlers
+      // never have one at all. Without this exception the request falls through to the
+      // default-deny block below and gets redirected to "/" instead of the actual image
+      // — which can't render as a favicon or a link preview, only a real image response can.
+      return env.ASSETS.fetch(request);
+    }
+
     // Default-deny: every other path — /app.html, /app, or anything else Cloudflare's
     // asset serving might resolve to that same file — requires a valid session. Only
     // the routes explicitly handled above are public. This is deliberately the opposite
