@@ -11,17 +11,17 @@
 //   POST /api/login               -> "already subscribed" email check
 //   POST /api/logout              -> clears the session cookie
 //   (anything else)               -> served as a normal static file
- 
+
 const PRICE_ID = "price_1UDOExDgfZTUGc5KxMifklMJ";
 const XML_CACHE_PRICE_ID = "price_1UE4EvDgfZTUGc5KzkjIjavw";   // $5 AUD one-time: personal XML cache + 3 sourced songs
 const XML_REQUEST_PRICE_ID = "price_1UE4FRDgfZTUGc5KIDPzwDPl"; // $3 AUD one-time: 3 sourced songs
 const COOKIE_NAME = "saxroll_session";
 const SESSION_DAYS = 7; // matches the weekly billing cycle — see note below
- 
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
- 
+
     if (url.pathname === "/api/create-checkout-session" && request.method === "POST") {
       return handleCheckout(request, env);
     }
@@ -50,7 +50,7 @@ export default {
         },
       });
     }
- 
+
     if (url.pathname === "/demo") {
       // Public, no-login demo — same app file, but its own JS detects this path
       // and disables uploads / shows only the built-in public-domain pieces.
@@ -61,7 +61,7 @@ export default {
       const assetReq = new Request(new URL("/app", request.url), request);
       return env.ASSETS.fetch(assetReq);
     }
- 
+
     if (url.pathname === "/" || url.pathname === "/index.html") {
       const session = await getSession(request, env);
       if (session) return Response.redirect(new URL("/app.html", request.url), 302);
@@ -69,14 +69,14 @@ export default {
         headers: { "Content-Type": "text/html;charset=UTF-8" },
       });
     }
- 
+
     // Default-deny: every other path — /app.html, /app, or anything else Cloudflare's
     // asset serving might resolve to that same file — requires a valid session. Only
     // the routes explicitly handled above are public. This is deliberately the opposite
     // of a blocklist: nothing is reachable unless it's named above.
     const session = await getSession(request, env);
     if (!session) return Response.redirect(new URL("/", request.url), 302);
- 
+
     const assetResp = await env.ASSETS.fetch(request);
     // Explicitly forbid caching this response anywhere (Cloudflare's edge, the browser,
     // any intermediate proxy). If a previously-authenticated response for this exact path
@@ -87,12 +87,12 @@ export default {
     return resp;
   },
 };
- 
+
 // ---------- Checkout ----------
- 
+
 async function handleCheckout(request, env) {
   if (!env.STRIPE_SECRET_KEY) return jsonError("Server isn't configured (missing STRIPE_SECRET_KEY).", 500);
- 
+
   const origin = new URL(request.url).origin;
   const params = new URLSearchParams();
   params.append("mode", "subscription");
@@ -100,7 +100,7 @@ async function handleCheckout(request, env) {
   params.append("line_items[0][quantity]", "1");
   params.append("success_url", `${origin}/api/checkout-complete?session_id={CHECKOUT_SESSION_ID}`);
   params.append("cancel_url", `${origin}/?checkout=cancelled`);
- 
+
   try {
     const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -119,14 +119,14 @@ async function handleCheckout(request, env) {
     return jsonError("Could not reach Stripe: " + err.message, 500);
   }
 }
- 
+
 // One-time (not subscription) purchases for the manual song-sourcing options — you
 // personally source/send the files afterward, so this just takes payment and collects
 // what they want via a Stripe Checkout custom field (shows up right in your Stripe
 // dashboard alongside the payment, no separate storage needed).
 async function handleOneTimeCheckout(request, env, priceId, fieldLabel, receiptDescription) {
   if (!env.STRIPE_SECRET_KEY) return jsonError("Server isn't configured (missing STRIPE_SECRET_KEY).", 500);
- 
+
   const origin = new URL(request.url).origin;
   const params = new URLSearchParams();
   params.append("mode", "payment");
@@ -140,7 +140,7 @@ async function handleOneTimeCheckout(request, env, priceId, fieldLabel, receiptD
   params.append("custom_fields[0][type]", "text");
   params.append("custom_fields[0][text][maximum_length]", "255");
   params.append("payment_intent_data[description]", receiptDescription);
- 
+
   try {
     const resp = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -159,26 +159,26 @@ async function handleOneTimeCheckout(request, env, priceId, fieldLabel, receiptD
     return jsonError("Could not reach Stripe: " + err.message, 500);
   }
 }
- 
+
 // Stripe sends the customer back here right after a successful payment.
 async function handleCheckoutComplete(request, env) {
   const url = new URL(request.url);
   const sessionId = url.searchParams.get("session_id");
   if (!sessionId) return Response.redirect(new URL("/", request.url), 302);
- 
+
   try {
     const resp = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
       headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
     });
     const session = await resp.json();
- 
+
     if (!resp.ok || session.status !== "complete") {
       return Response.redirect(new URL("/?checkout=incomplete", request.url), 302);
     }
- 
+
     const email = session.customer_details?.email || session.customer_email;
     if (!email) return Response.redirect(new URL("/", request.url), 302);
- 
+
     const token = await makeSessionToken(email, env.SESSION_SECRET);
     const headers = new Headers();
     headers.set("Set-Cookie", `${COOKIE_NAME}=${token}; Path=/; Max-Age=${SESSION_DAYS*86400}; Secure; HttpOnly; SameSite=Lax`);
@@ -188,18 +188,18 @@ async function handleCheckoutComplete(request, env) {
     return Response.redirect(new URL("/?checkout=error", request.url), 302);
   }
 }
- 
+
 // "Already subscribed?" email check.
 async function handleLogin(request, env) {
   let body;
   try { body = await request.json(); } catch { return jsonError("Invalid request.", 400); }
- 
+
   const email = (body.email || "").trim().toLowerCase();
   if (!email || !email.includes("@")) return jsonError("Enter a valid email address.", 400);
- 
+
   const active = await hasActiveSubscription(email, env);
   if (!active) return jsonError("No active subscription found for that email.", 403);
- 
+
   const token = await makeSessionToken(email, env.SESSION_SECRET);
   return new Response(JSON.stringify({ ok: true }), {
     headers: {
@@ -208,14 +208,14 @@ async function handleLogin(request, env) {
     },
   });
 }
- 
+
 async function hasActiveSubscription(email, env) {
   const custResp = await fetch(`https://api.stripe.com/v1/customers?email=${encodeURIComponent(email)}&limit=10`, {
     headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
   });
   const custData = await custResp.json();
   if (!custResp.ok || !custData.data?.length) return false;
- 
+
   for (const customer of custData.data) {
     const subResp = await fetch(`https://api.stripe.com/v1/subscriptions?customer=${customer.id}&status=active&limit=10`, {
       headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
@@ -231,12 +231,12 @@ async function hasActiveSubscription(email, env) {
   }
   return false;
 }
- 
+
 // Opens the Stripe-hosted Customer Portal for the logged-in subscriber — self-serve
 // cancel, update card, view billing history, no need to email you directly.
 async function handleCustomerPortal(request, env, email) {
   if (!env.STRIPE_SECRET_KEY) return jsonError("Server isn't configured (missing STRIPE_SECRET_KEY).", 500);
- 
+
   const custResp = await fetch(`https://api.stripe.com/v1/customers?email=${encodeURIComponent(email)}&limit=10`, {
     headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
   });
@@ -244,7 +244,7 @@ async function handleCustomerPortal(request, env, email) {
   if (!custResp.ok || !custData.data?.length) {
     return jsonError("Couldn't find a Stripe customer for your account.", 404);
   }
- 
+
   // If this email somehow has more than one Stripe customer record, prefer whichever
   // one actually has the active subscription, so the portal shows the right billing history.
   let customerId = custData.data[0].id;
@@ -258,12 +258,12 @@ async function handleCustomerPortal(request, env, email) {
       break;
     }
   }
- 
+
   const origin = new URL(request.url).origin;
   const params = new URLSearchParams();
   params.append("customer", customerId);
   params.append("return_url", `${origin}/app.html`);
- 
+
   try {
     const resp = await fetch("https://api.stripe.com/v1/billing_portal/sessions", {
       method: "POST",
@@ -282,23 +282,23 @@ async function handleCustomerPortal(request, env, email) {
     return jsonError("Could not reach Stripe: " + err.message, 500);
   }
 }
- 
+
 // ---------- Sessions (signed cookie, no database needed) ----------
- 
+
 async function getSession(request, env) {
   const cookieHeader = request.headers.get("Cookie") || "";
   const match = cookieHeader.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
   if (!match) return null;
   return verifySessionToken(decodeURIComponent(match[1]), env.SESSION_SECRET);
 }
- 
+
 async function makeSessionToken(email, secret) {
   const expiry = Date.now() + SESSION_DAYS*86400*1000;
   const payload = `${email}|${expiry}`;
   const sig = await hmacSign(payload, secret);
   return btoa(payload) + "." + sig;
 }
- 
+
 async function verifySessionToken(token, secret) {
   if (!token || !secret) return null;
   const [payloadB64, sig] = token.split(".");
@@ -311,23 +311,23 @@ async function verifySessionToken(token, secret) {
   if (Date.now() > parseInt(expiryStr, 10)) return null;
   return { email };
 }
- 
+
 async function hmacSign(message, secret) {
   const enc = new TextEncoder();
   const key = await crypto.subtle.importKey("raw", enc.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
   const sig = await crypto.subtle.sign("HMAC", key, enc.encode(message));
   return btoa(String.fromCharCode(...new Uint8Array(sig)));
 }
- 
+
 function jsonError(message, status) {
   return new Response(JSON.stringify({ error: message }), {
     status,
     headers: { "Content-Type": "application/json" },
   });
 }
- 
+
 // ---------- Landing page (shown to anyone without an active subscription) ----------
- 
+
 function landingPage() {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -337,16 +337,22 @@ function landingPage() {
 <title>Sax Roll — Play Along on Alto Sax Without Reading Sheet Music</title>
 <meta name="description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax, no sheet-music reading required.">
 <link rel="canonical" href="https://saxroll.com/">
- 
+<link rel="icon" type="image/png" href="/og-image.png">
+
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://saxroll.com/">
 <meta property="og:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
 <meta property="og:description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax.">
- 
+<meta property="og:image" content="https://saxroll.com/og-image.png">
+<meta property="og:image:width" content="440">
+<meta property="og:image:height" content="437">
+<meta property="og:image:alt" content="Sax Roll — saxophone with a scrolling fingering highway">
+
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
 <meta name="twitter:description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax.">
- 
+<meta name="twitter:image" content="https://saxroll.com/og-image.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -419,11 +425,11 @@ function landingPage() {
   const params = new URLSearchParams(window.location.search);
   if (params.get('checkout') === 'cancelled') { msg.textContent = 'Checkout cancelled — no charge was made.'; }
   if (params.get('checkout') === 'incomplete' || params.get('checkout') === 'error') { msg.textContent = 'Something went wrong finishing checkout — try again.'; msg.style.color = '#E8637A'; }
- 
+
   document.getElementById('demoLink').addEventListener('click', () => {
     window.location.href = '/demo';
   });
- 
+
   document.getElementById('subscribeBtn').addEventListener('click', async () => {
     msg.textContent = '';
     try {
@@ -433,7 +439,7 @@ function landingPage() {
       else { msg.textContent = data.error || 'Something went wrong.'; msg.style.color = '#E8637A'; }
     } catch { msg.textContent = "Couldn't reach the server."; msg.style.color = '#E8637A'; }
   });
- 
+
   document.getElementById('loginBtn').addEventListener('click', async () => {
     const email = document.getElementById('emailInput').value.trim();
     msg.style.color = '#9BA8B2';
