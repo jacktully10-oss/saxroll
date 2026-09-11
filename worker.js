@@ -70,7 +70,7 @@ export default {
       });
     }
 
-    if (url.pathname === "/og-image.png") {
+    if (url.pathname === "/og-image.png" || url.pathname === "/og-image-wide.png") {
       // Public on purpose, same reasoning as "/" and "/demo" above: browsers request
       // favicons automatically with no session, and social-media link-preview crawlers
       // never have one at all. Without this exception the request falls through to the
@@ -352,15 +352,15 @@ function landingPage() {
 <meta property="og:url" content="https://saxroll.com/">
 <meta property="og:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
 <meta property="og:description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax.">
-<meta property="og:image" content="https://saxroll.com/og-image.png">
-<meta property="og:image:width" content="440">
-<meta property="og:image:height" content="437">
+<meta property="og:image" content="https://saxroll.com/og-image-wide.png">
+<meta property="og:image:width" content="1536">
+<meta property="og:image:height" content="1024">
 <meta property="og:image:alt" content="Sax Roll — saxophone with a scrolling fingering highway">
 
-<meta name="twitter:card" content="summary">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Sax Roll — Play Along on Alto Sax Without Reading Sheet Music">
 <meta name="twitter:description" content="Turn any sheet music — PDF, scan, or MusicXML — into a scrolling fingering guide, timed to the music. See exactly which keys to press for any song on alto sax.">
-<meta name="twitter:image" content="https://saxroll.com/og-image.png">
+<meta name="twitter:image" content="https://saxroll.com/og-image-wide.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
