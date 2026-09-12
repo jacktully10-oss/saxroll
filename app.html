@@ -86,7 +86,8 @@
   .kg-dot.oct{ fill:var(--oct); }
   .kg-dot.lh{ fill:var(--lh); }
   .kg-dot.rh{ fill:var(--rh); }
-  .kg-dot.low{ fill:var(--low); }
+  .kg-dot.low-l{ fill:var(--lh); }
+  .kg-dot.low-r{ fill:var(--rh); }
   .kg-dot.side{ fill:var(--side); }
   .kg-dot.palm{ fill:var(--palm); }
   .kg-dot.aux{ fill:#7FA8C9; }
@@ -270,7 +271,8 @@
   .bar.oct{background:var(--oct, #6B4BA8);}
   .bar.lh{background:var(--lh, #D97A34);}
   .bar.rh{background:var(--rh, #35618F);}
-  .bar.low{background:var(--low, #4FD9B0);}
+  .bar.low-l{background:var(--lh, #D97A34);}
+  .bar.low-r{background:var(--rh, #35618F);}
   .bar.side{background:var(--side, #E85D75);}
   .bar.palm{background:var(--palm, #B98CE0);}
   .trill-zigzag{
@@ -327,6 +329,20 @@
     background:var(--brass); color:#20150A; font-size:13px; font-weight:700;
     flex:0 0 auto;
   }
+  .difficulty-badge{
+    margin-left:auto; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.04em; padding:4px 10px; border-radius:12px;
+  }
+  .difficulty-badge:empty{ display:none; }
+  .simplify-warning{
+    font-size:11.5px; color:var(--ink-dim); line-height:1.5;
+    margin:2px 0 4px; padding-left:2px;
+  }
+  .difficulty-badge.diff-beginner{ background:rgba(111,207,151,.15); color:#6FCF97; }
+  .difficulty-badge.diff-easy{ background:rgba(127,168,201,.15); color:#7FA8C9; }
+  .difficulty-badge.diff-intermediate{ background:rgba(217,162,75,.15); color:var(--brass); }
+  .difficulty-badge.diff-advanced{ background:rgba(232,99,122,.15); color:#E8637A; }
+  .difficulty-badge.diff-expert{ background:rgba(184,71,71,.2); color:#D9605F; }
   .card p{color:var(--ink-dim); font-size:13px; line-height:1.6;}
 
   .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;}
@@ -450,9 +466,9 @@
         <text x="270" y="70" class="kg-callout-label" text-anchor="end">Octave</text>
         <line x1="278" y1="66" x2="308" y2="66" class="kg-line"/>
 
-        <circle cx="315" cy="120" r="12" class="kg-dot palm"/>
-        <circle cx="335" cy="105" r="12" class="kg-dot palm"/>
-        <circle cx="335" cy="135" r="12" class="kg-dot palm"/>
+        <circle cx="315" cy="120" r="12" class="kg-dot palm"/><text x="315" y="123" class="kg-sub-label">D</text>
+        <circle cx="335" cy="105" r="12" class="kg-dot palm"/><text x="335" y="108" class="kg-sub-label">Eb</text>
+        <circle cx="335" cy="135" r="12" class="kg-dot palm"/><text x="335" y="138" class="kg-sub-label">F</text>
         <text x="270" y="112" class="kg-callout-label" text-anchor="end">Palm</text>
         <line x1="278" y1="112" x2="303" y2="118" class="kg-line"/>
 
@@ -473,19 +489,22 @@
         <circle cx="360" cy="400" r="30" class="kg-dot lh"/><text x="360" y="407" class="kg-label-in">L3</text>
         <text x="360" y="443" class="kg-finger-label">ring</text>
 
-        <!-- left pinky, tight at L3 -->
-        <rect x="270" y="420" width="30" height="17" rx="8" class="kg-dot low"/><text x="285" y="432" class="kg-sub-label">G#</text>
-        <rect x="270" y="442" width="30" height="17" rx="8" class="kg-dot low"/><text x="285" y="454" class="kg-sub-label">C#</text>
-        <rect x="270" y="464" width="30" height="17" rx="8" class="kg-dot low"/><text x="285" y="476" class="kg-sub-label">B</text>
-        <rect x="270" y="486" width="30" height="17" rx="8" class="kg-dot low"/><text x="285" y="498" class="kg-sub-label">Bb</text>
-        <text x="230" y="460" class="kg-callout-label" text-anchor="end">Left pinky</text>
-        <line x1="235" y1="457" x2="266" y2="457" class="kg-line"/>
+        <!-- left pinky, tight at L3 — real layout is a cross shape, not a stack: G# is a
+             standalone round key on top, C# and B sit side-by-side below it, and Bb is a
+             wider paddle at the bottom -->
+        <circle cx="272" cy="405" r="11" class="kg-dot low-l"/><text x="272" y="408" class="kg-sub-label">G#</text>
+        <rect x="242" y="421" width="26" height="15" rx="7" class="kg-dot low-l"/><text x="255" y="432" class="kg-sub-label">C#</text>
+        <rect x="272" y="421" width="26" height="15" rx="7" class="kg-dot low-l"/><text x="285" y="432" class="kg-sub-label">B</text>
+        <rect x="250" y="440" width="42" height="16" rx="8" class="kg-dot low-l"/><text x="271" y="452" class="kg-sub-label">Bb</text>
+        <text x="200" y="437" class="kg-callout-label" text-anchor="end">Left pinky</text>
+        <line x1="205" y1="434" x2="238" y2="428" class="kg-line"/>
 
         <!-- RIGHT HAND (lower body — continuing down the SAME horn) -->
-        <circle cx="405" cy="472" r="11" class="kg-dot side"/>
-        <circle cx="425" cy="487" r="11" class="kg-dot side"/>
-        <text x="470" y="472" class="kg-callout-label" text-anchor="start">Side</text>
-        <line x1="437" y1="475" x2="448" y2="475" class="kg-line"/>
+        <circle cx="398" cy="462" r="11" class="kg-dot side"/><text x="398" y="465" class="kg-sub-label">Bb</text>
+        <circle cx="415" cy="478" r="11" class="kg-dot side"/><text x="415" y="481" class="kg-sub-label">C</text>
+        <circle cx="432" cy="494" r="11" class="kg-dot side"/><text x="432" y="497" class="kg-sub-label">E</text>
+        <text x="470" y="478" class="kg-callout-label" text-anchor="start">Side</text>
+        <line x1="443" y1="481" x2="454" y2="481" class="kg-line"/>
 
         <circle cx="360" cy="530" r="30" class="kg-dot rh"/><text x="360" y="537" class="kg-label-in">R1</text>
         <text x="360" y="573" class="kg-finger-label">index</text>
@@ -496,12 +515,12 @@
         <text x="360" y="743" class="kg-finger-label">ring</text>
 
         <!-- right pinky, tight at R3 -->
-        <rect x="418" y="720" width="30" height="17" rx="8" class="kg-dot low"/><text x="433" y="732" class="kg-sub-label">Eb</text>
-        <rect x="418" y="742" width="30" height="17" rx="8" class="kg-dot low"/><text x="433" y="754" class="kg-sub-label">C</text>
+        <rect x="418" y="720" width="30" height="17" rx="8" class="kg-dot low-r"/><text x="433" y="732" class="kg-sub-label">Eb</text>
+        <rect x="418" y="742" width="30" height="17" rx="8" class="kg-dot low-r"/><text x="433" y="754" class="kg-sub-label">C</text>
         <text x="470" y="738" class="kg-callout-label" text-anchor="start">Right pinky</text>
         <line x1="452" y1="735" x2="463" y2="735" class="kg-line"/>
       </svg>
-      <p class="kg-note">Purple = octave key, orange = left hand, blue = right hand, teal = low pinky keys, rose = side/front keys, light blue = bis Bb key, violet = palm keys. One horn, top to bottom — left hand plays the upper body, right hand continues further down the same instrument.</p>
+      <p class="kg-note">Purple = octave key, orange = left hand (including left pinky), blue = right hand (including right pinky), rose = side/front keys, light blue = bis Bb key, violet = palm keys. One horn, top to bottom — left hand plays the upper body, right hand continues further down the same instrument.</p>
     </div>
   </details>
 
@@ -588,7 +607,7 @@
     </div>
 
     <div class="card">
-      <h2><span class="badge">2</span>Play it back</h2>
+      <h2><span class="badge">2</span>Play it back<span class="difficulty-badge" id="difficultyBadge"></span></h2>
       <div class="controls">
         <button id="playBtn" disabled>▶ Play</button>
         <button class="secondary" id="restartBtn" disabled>⟲ Restart</button>
@@ -603,6 +622,16 @@
           <input type="checkbox" id="soundToggle" checked>
           Sound (concert pitch)
         </div>
+        <div class="row">
+          Simplify
+          <select id="simplifySelect" style="background:#0E141A;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:5px 8px;font-family:inherit;font-size:13px;">
+            <option value="0" selected>Off</option>
+            <option value="1">Light</option>
+            <option value="2">Medium</option>
+            <option value="3">Strong</option>
+          </select>
+        </div>
+        <p class="simplify-warning">Simplifying can change a few of the actual notes in the song (swapping a hard-to-finger note for an easier nearby one) — it's meant to make a piece approachable, not a note-perfect version of the real thing.</p>
         <div class="row">
           Instrument
           <select id="instrumentSelect" style="background:#0E141A;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:5px 8px;font-family:inherit;font-size:13px;">
@@ -699,12 +728,12 @@ FINGERING['C6']  = ['oct', ...REG2['C']];
 FINGERING['C#6'] = ['oct', ...REG2['C#']];
 
 const AUX_META = {
-  lowBb: {label:'Low Bb',  group:'low',  className:'low'},
-  lowB:  {label:'Low B',   group:'low',  className:'low'},
-  lowC:  {label:'Low C',   group:'low',  className:'low'},
-  lowCs: {label:'Low C#',  group:'low',  className:'low'},
-  lowEb: {label:'Low Eb',  group:'low',  className:'low'},
-  keyGs: {label:'G# key',  group:'low',  className:'low'},
+  lowBb: {label:'Low Bb',  group:'low',  className:'low-l'},
+  lowB:  {label:'Low B',   group:'low',  className:'low-l'},
+  lowC:  {label:'Low C',   group:'low',  className:'low-r'},
+  lowCs: {label:'Low C#',  group:'low',  className:'low-l'},
+  lowEb: {label:'Low Eb',  group:'low',  className:'low-r'},
+  keyGs: {label:'G# key',  group:'low',  className:'low-l'},
   sideBb:{label:'Side Bb', group:'side', className:'side'},
   highFs:{label:'High F# key', group:'side', className:'side'},
   sideE: {label:'Side E',  group:'side', className:'side'},
@@ -1028,6 +1057,7 @@ let lastLoadedXmlText = null;
 let rafId = null;
 let scheduledOsc = [];
 let elLanes = {};
+let elLaneKeys = [];
 let nextScheduleIdx = 0;
 const SCHEDULE_HORIZON = 4; // seconds of song-time to keep scheduled ahead of playback
 
@@ -1107,6 +1137,7 @@ function buildLanes(){
     elLanes[key] = lane.querySelector('.lane-rail');
   });
 
+  elLaneKeys = Object.keys(elLanes);
   buildLegend(aux);
 }
 
@@ -1114,9 +1145,8 @@ function buildLegend(aux){
   const groupsPresent = new Set(aux.map(k=>AUX_META[k].group));
   const items = [
     {dot:'var(--oct)', label:'thumb octave key', always:true},
-    {dot:'var(--lh)', label:'left hand', always:true},
-    {dot:'var(--rh)', label:'right hand', always:true},
-    {dot:'var(--low)', label:'low pinky keys', show: groupsPresent.has('low')},
+    {dot:'var(--lh)', label:'left hand (incl. left pinky)', always:true},
+    {dot:'var(--rh)', label:'right hand (incl. right pinky)', always:true},
     {dot:'var(--side)', label:'side / bis keys', show: groupsPresent.has('side')},
     {dot:'var(--palm)', label:'palm keys', show: groupsPresent.has('palm')},
   ];
@@ -1159,7 +1189,17 @@ function makeTrillZigzag(widthPx, colorClass){
 
 function buildBars(){
   buildLanes();
-  Object.keys(elLanes).forEach(l=> elLanes[l].innerHTML = '');
+  // Build into an off-screen fragment per lane instead of appending each bar directly to
+  // the live DOM one at a time — for a song with 1000+ bars, that's 1000+ potential layout
+  // recalculations. Appending one fragment per lane at the end does the same work in a
+  // handful of DOM operations instead, which matters a lot for how responsive changing
+  // speed/octave/simplify level feels (rebuilding all the bars is the single most
+  // expensive thing any of those interactions do).
+  const fragments = {};
+  elLaneKeys.forEach(l => {
+    elLanes[l].innerHTML = '';
+    fragments[l] = document.createDocumentFragment();
+  });
   let barCount = 0;
   events.forEach(ev=>{
     if (ev.trill) {
@@ -1170,7 +1210,7 @@ function buildBars(){
         openBar.className = 'open-bar';
         openBar.style.left = (ev.start*pxPerSec) + 'px';
         openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 4) + 'px';
-        elLanes['__open'].appendChild(openBar);
+        fragments['__open'].appendChild(openBar);
         barCount++;
         return;
       }
@@ -1183,13 +1223,13 @@ function buildBars(){
         if (trillInfo.toggleKeys.has(k)) {
           const zz = makeTrillZigzag(width, cls);
           zz.style.left = left + 'px';
-          track.appendChild(zz);
+          fragments[k].appendChild(zz);
         } else {
           const bar = document.createElement('div');
           bar.className = 'bar ' + cls;
           bar.style.left = left + 'px';
           bar.style.width = width + 'px';
-          track.appendChild(bar);
+          fragments[k].appendChild(bar);
         }
         barCount++;
       });
@@ -1204,7 +1244,7 @@ function buildBars(){
       openBar.className = 'open-bar';
       openBar.style.left = (ev.start*pxPerSec) + 'px';
       openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 4) + 'px';
-      elLanes['__open'].appendChild(openBar);
+      fragments['__open'].appendChild(openBar);
       barCount++;
       return;
     }
@@ -1216,10 +1256,11 @@ function buildBars(){
       bar.className = 'bar ' + cls;
       bar.style.left = (ev.start*pxPerSec) + 'px';
       bar.style.width = Math.max(ev.dur*pxPerSec - 3, 4) + 'px';
-      track.appendChild(bar);
+      fragments[k].appendChild(bar);
       barCount++;
     });
   });
+  elLaneKeys.forEach(l => elLanes[l].appendChild(fragments[l]));
   songDuration = events.length ? events[events.length-1].start + events[events.length-1].dur : 0;
   return barCount;
 }
@@ -1230,11 +1271,26 @@ function currentTime(){
   return pausedAt + (audioCtx.currentTime - startCtxTime) * parseFloat(speed.value);
 }
 
+// events is sorted by start time, so a binary search finds the active note in O(log n)
+// instead of scanning the whole array — this runs every animation frame during playback,
+// so for a long song (1000+ notes) a linear scan here was real, avoidable, repeated cost.
+function findActiveEvent(t){
+  let lo = 0, hi = events.length - 1, result = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (events[mid].start <= t) { result = mid; lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  if (result === -1) return undefined;
+  const ev = events[result];
+  return (t < ev.start + ev.dur) ? ev : undefined;
+}
+
 function renderAt(t){
   const offsetPx = t*pxPerSec;
-  Object.keys(elLanes).forEach(l=> elLanes[l].style.transform = `translateX(${-offsetPx}px)`);
+  elLaneKeys.forEach(l=> elLanes[l].style.transform = `translateX(${-offsetPx}px)`);
 
-  const active = events.find(ev => t >= ev.start && t < ev.start+ev.dur);
+  const active = findActiveEvent(t);
   if (active && active.trill) {
     noteNameEl.textContent = active.key.replace(/[0-9]/,'');
     const trillInfo = getTrillInfo(active.key, active.trillTarget);
@@ -1700,12 +1756,21 @@ function loadEvents(evs, tempo, label){
   stopPlayback(true);
   originalEvents = evs;
   octaveShift = 0;
+  simplifyLevel = 0;
   document.getElementById('octaveShiftSelect').value = '0';
+  document.getElementById('simplifySelect').value = '0';
   events = evs;
   lastLoadedXmlText = null; // callers that have real xml set this again right after calling loadEvents
   document.getElementById('saveNameInput').disabled = true;
   document.getElementById('saveSongBtn').disabled = true;
   songBaseTempo = tempo || 120;
+  // Difficulty is always computed from the original, unmodified notes — it describes the
+  // real song, not whatever practice settings happen to be active right now.
+  const origDuration = evs.length ? evs[evs.length-1].start + evs[evs.length-1].dur : 0;
+  const diff = computeDifficulty(evs, origDuration);
+  const diffEl = document.getElementById('difficultyBadge');
+  diffEl.textContent = diff.label;
+  diffEl.className = 'difficulty-badge diff-' + diff.label.toLowerCase();
   // The slider itself is a ratio of songBaseTempo, so its min/max are recomputed per song
   // to make its actual reachable range exactly 1-250 bpm, matching the bpm number field.
   speed.min = (1 / songBaseTempo).toFixed(4);
@@ -1725,6 +1790,163 @@ function loadEvents(evs, tempo, label){
   statusEl.textContent = label + ` (${barCount} fingering bars placed)`;
 }
 
+// Estimates rough playing difficulty from the parsed notes themselves — density, fast
+// notes, trills, range span, and big leaps between consecutive notes. This is a heuristic,
+// not a music-pedagogy-verified rating, but it gives a useful at-a-glance signal.
+function computeDifficulty(evs, duration){
+  if (!evs.length || !duration) return { label: 'Unknown', score: 0 };
+  const notesPerSec = evs.length / duration;
+  const shortFrac = evs.filter(e => e.dur < 0.15).length / evs.length;
+  const trillFrac = evs.filter(e => e.trill).length / evs.length;
+  const midis = evs.map(e => keyToMidi(e.key)).filter(m => isFinite(m));
+  const rangeSemitones = midis.length ? Math.max(...midis) - Math.min(...midis) : 0;
+  let bigLeaps = 0;
+  for (let i = 1; i < evs.length; i++) {
+    const m1 = keyToMidi(evs[i-1].key), m2 = keyToMidi(evs[i].key);
+    if (isFinite(m1) && isFinite(m2) && Math.abs(m2-m1) > 7) bigLeaps++;
+  }
+  const leapFrac = evs.length > 1 ? bigLeaps / (evs.length - 1) : 0;
+
+  let score = 0;
+  score += Math.min(40, notesPerSec * 10);
+  score += Math.min(20, shortFrac * 40);
+  score += Math.min(15, trillFrac * 150);
+  score += Math.min(15, (rangeSemitones/36) * 15);
+  score += Math.min(10, leapFrac * 40);
+  score = Math.round(score);
+
+  let label;
+  if (score < 20) label = 'Beginner';
+  else if (score < 40) label = 'Easy';
+  else if (score < 60) label = 'Intermediate';
+  else if (score < 80) label = 'Advanced';
+  else label = 'Expert';
+  return { label, score };
+}
+
+// How physically hard a note's actual fingering is: more keys involved means more
+// simultaneous finger movement, and pinky/palm/side mechanisms are weighted extra since
+// independent pinky/palm control is a skill beginners haven't built yet, regardless of
+// how many total keys a fingering uses.
+const HARD_MECHANISMS = ['lowBb','lowB','lowC','lowCs','lowEb','keyGs','sideBb','sideE','highFs','palmD','palmEb','palmF','frontF'];
+function fingeringComplexity(key){
+  const fingering = FINGERING[key];
+  if (!fingering) return 99; // unknown/out of range — treat as maximally hard
+  const hardCount = fingering.filter(k => HARD_MECHANISMS.includes(k)).length;
+  return fingering.length + hardCount * 1.5;
+}
+
+// Reverse lookup: given a MIDI number, find which of our 33 known note names is there —
+// only used to find neighboring semitones that are themselves guaranteed to have a real,
+// valid fingering (never invents a note outside the known range).
+let MIDI_TO_KEY = null;
+function getMidiToKey(){
+  if (MIDI_TO_KEY) return MIDI_TO_KEY;
+  MIDI_TO_KEY = {};
+  for (const key of Object.keys(FINGERING)) MIDI_TO_KEY[keyToMidi(key)] = key;
+  return MIDI_TO_KEY;
+}
+
+// Produces an easier version of the song, built around actual fingering difficulty rather
+// than rhythm alone: folds grace notes into the note beside them, and for the genuinely
+// hardest fingerings (lots of keys, especially pinky/palm/side mechanisms) either drops
+// them when they're too short to matter anyway, or swaps them for a neighboring semitone
+// with a meaningfully easier fingering when one exists. Trills are left completely alone.
+const SIMPLIFY_LEVELS = {
+  1: { dropComplexity: 8,   dropDur: 0.12, swapComplexity: 9, swapImprovement: 4, shortDur: 0.15, minRun: 4 },
+  2: { dropComplexity: 6.5, dropDur: 0.15, swapComplexity: 7, swapImprovement: 3, shortDur: 0.18, minRun: 3 },
+  3: { dropComplexity: 5,   dropDur: 0.18, swapComplexity: 5, swapImprovement: 2, shortDur: 0.22, minRun: 3 },
+};
+function simplifyEvents(evs, level){
+  const cfg = SIMPLIFY_LEVELS[level] || SIMPLIFY_LEVELS[1];
+  const folded = [];
+  for (const ev of evs) {
+    if (ev.grace) {
+      const prev = folded[folded.length-1];
+      if (prev && Math.abs((prev.start+prev.dur) - ev.start) < 0.02) {
+        folded[folded.length-1] = { ...prev, dur: prev.dur + ev.dur };
+      } else {
+        folded.push({ ...ev });
+      }
+      continue;
+    }
+    folded.push({ ...ev });
+  }
+
+  // Cut the worst offenders: a hard fingering that only lasts a fraction of a second is
+  // basically unplayable for a beginner and barely audible anyway — fold it into the
+  // previous note rather than trying to represent it.
+  const TOL = 0.02;
+  const dropped = [];
+  for (const ev of folded) {
+    if (!ev.trill && ev.dur < cfg.dropDur && fingeringComplexity(ev.key) >= cfg.dropComplexity) {
+      const prev = dropped[dropped.length-1];
+      if (prev && Math.abs((prev.start+prev.dur) - ev.start) < TOL) {
+        dropped[dropped.length-1] = { ...prev, dur: prev.dur + ev.dur };
+        continue;
+      }
+    }
+    dropped.push(ev);
+  }
+
+  // For remaining hard fingerings (long enough to matter), swap in a neighboring semitone
+  // if it's meaningfully easier — this does change the actual pitch, so it's reserved for
+  // only the genuinely hardest fingerings, not applied broadly.
+  const midiToKey = getMidiToKey();
+  const swapped = dropped.map(ev => {
+    if (ev.trill) return ev;
+    const complexity = fingeringComplexity(ev.key);
+    if (complexity < cfg.swapComplexity) return ev;
+    const midi = keyToMidi(ev.key);
+    const candidates = [midiToKey[midi-1], midiToKey[midi+1]].filter(Boolean);
+    let best = null, bestComplexity = complexity;
+    for (const cand of candidates) {
+      const c = fingeringComplexity(cand);
+      if (c < bestComplexity) { best = cand; bestComplexity = c; }
+    }
+    if (best && complexity - bestComplexity >= cfg.swapImprovement) {
+      return { ...ev, key: best };
+    }
+    return ev;
+  });
+
+  // Thin genuinely fast runs by keeping every other note extended to cover the gap —
+  // reduces note density in the fastest passages while leaving normal-paced sections
+  // untouched. Higher levels treat more notes as "fast" and thin shorter runs too.
+  const SHORT = cfg.shortDur;
+  const out = [];
+  let i = 0;
+  while (i < swapped.length) {
+    const ev = swapped[i];
+    if (ev.trill || ev.dur >= SHORT) { out.push(ev); i++; continue; }
+    let j = i;
+    while (j+1 < swapped.length && !swapped[j+1].trill && swapped[j].dur < SHORT && swapped[j+1].dur < SHORT &&
+           Math.abs((swapped[j].start+swapped[j].dur) - swapped[j+1].start) < TOL) {
+      j++;
+    }
+    const runLen = j - i + 1;
+    if (runLen < cfg.minRun) {
+      for (let k=i;k<=j;k++) out.push(swapped[k]);
+    } else {
+      for (let k=i; k<=j; k+=2) {
+        const keep = swapped[k];
+        const next = swapped[k+1];
+        const dur = next ? (next.start + next.dur - keep.start) : keep.dur;
+        out.push({ ...keep, dur });
+      }
+    }
+    i = j+1;
+  }
+  return out;
+}
+
+let simplifyLevel = 0;
+function rebuildEventsFromOriginal(){
+  let evs = simplifyLevel ? simplifyEvents(originalEvents, simplifyLevel) : originalEvents;
+  if (octaveShift) evs = evs.map(ev => ({ ...ev, key: transposeKeyOctave(ev.key, octaveShift) }));
+  events = evs;
+}
+
 // Re-derives `events` from the untouched original notes every time, rather than shifting
 // the already-shifted array — that avoids any drift if someone flips between +1 and -1
 // a few times, and means "Normal" always gets back to exactly the original song.
@@ -1742,13 +1964,20 @@ function applyOctaveShift(newShift){
   }
   msg.textContent = '';
   octaveShift = newShift;
-  events = originalEvents.map(ev => ({ ...ev, key: transposeKeyOctave(ev.key, octaveShift) }));
+  rebuildEventsFromOriginal();
   const atTime = currentTime();
   buildBars();
   renderAt(atTime);
 }
 document.getElementById('octaveShiftSelect').addEventListener('change', (e)=>{
   applyOctaveShift(parseInt(e.target.value, 10));
+});
+document.getElementById('simplifySelect').addEventListener('change', (e)=>{
+  simplifyLevel = parseInt(e.target.value, 10);
+  rebuildEventsFromOriginal();
+  const atTime = currentTime();
+  buildBars();
+  renderAt(atTime);
 });
 
 document.getElementById('demoBtn').addEventListener('click', ()=>{
