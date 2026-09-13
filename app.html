@@ -6,8 +6,9 @@
 <title>Sax Roll — play along on alto sax</title>
 <link rel="icon" type="image/png" href="/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
 <style>
   :root{
     --bg: #10161C;
@@ -110,18 +111,18 @@
     font-family:'Inter',sans-serif; font-size:15px; font-weight:700;
     fill:var(--ink-dim); letter-spacing:.08em;
   }
-  .kg-label-in{
+  .label-in{
     font-family:'Inter',sans-serif; font-size:19px; font-weight:700;
     fill:#10161C; text-anchor:middle;
   }
-  .kg-finger-label{
+  .finger-label{
     font-family:'Inter',sans-serif; font-size:11px; font-weight:700; fill:var(--ink-dim); text-anchor:middle;
   }
   .kg-sub-label{
     font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
     fill:#10161C; text-anchor:middle;
   }
-  .kg-callout-label{
+  .callout{
     font-family:'Inter',sans-serif; font-size:14px; font-weight:600; fill:var(--ink);
   }
   .kg-caption{
@@ -589,21 +590,21 @@
   <circle cx="166" cy="400" r="20" class="kg-dot lh"/><text x="166" y="405" class="label-in">L3</text>
   <text x="166" y="428" class="finger-label">ring</text>
 
-  <circle cx="55" cy="370" r="8" class="kg-dot low-l"/>
-  <text x="8" y="355" class="callout" text-anchor="end">G#</text>
-  <line x1="14" y1="355" x2="49" y2="367" class="kg-line"/>
+  <circle cx="58" cy="365" r="8" class="kg-dot low-l"/>
+  <text x="8" y="352" class="callout" text-anchor="end">G#</text>
+  <line x1="14" y1="352" x2="52" y2="362" class="kg-line"/>
 
-  <rect x="45" y="395" width="20" height="13" rx="6.5" class="kg-dot low-l"/>
-  <text x="8" y="402" class="callout" text-anchor="end">C#</text>
-  <line x1="14" y1="402" x2="43" y2="402" class="kg-line"/>
+  <path d="M58,387 L44,386 A6,6 0 1,0 44,398 L58,397 Z" class="kg-dot low-l"/>
+  <text x="8" y="388" class="callout" text-anchor="end">C#</text>
+  <line x1="14" y1="388" x2="42" y2="392" class="kg-line"/>
 
-  <rect x="45" y="420" width="20" height="13" rx="6.5" class="kg-dot low-l"/>
-  <text x="8" y="444" class="callout" text-anchor="end">B</text>
-  <line x1="14" y1="444" x2="43" y2="428" class="kg-line"/>
+  <path d="M86,387 L72,386 A6,6 0 1,0 72,398 L86,397 Z" class="kg-dot low-l"/>
+  <text x="8" y="412" class="callout" text-anchor="end">B</text>
+  <line x1="14" y1="412" x2="70" y2="394" class="kg-line"/>
 
-  <rect x="42" y="445" width="28" height="14" rx="7" class="kg-dot low-l"/>
-  <text x="8" y="485" class="callout" text-anchor="end">Bb (pinky)</text>
-  <line x1="14" y1="485" x2="40" y2="454" class="kg-line"/>
+  <path d="M74,414 L44,413 A7,7 0 1,0 44,427 L74,426 Z" class="kg-dot low-l"/>
+  <text x="8" y="460" class="callout" text-anchor="end">Bb (pinky)</text>
+  <line x1="14" y1="460" x2="42" y2="422" class="kg-line"/>
 
   <circle cx="174" cy="465" r="20" class="kg-dot rh"/><text x="174" y="470" class="label-in">R1</text>
   <text x="174" y="493" class="finger-label">index</text>
@@ -626,13 +627,13 @@
   <circle cx="190" cy="595" r="20" class="kg-dot rh"/><text x="190" y="600" class="label-in">R3</text>
   <text x="190" y="623" class="finger-label">ring</text>
 
-  <rect x="216" y="598" width="20" height="13" rx="6.5" class="kg-dot low-r"/>
+  <path d="M214,599.5 L228,598.5 A6,6 0 1,1 228,610.5 L214,609.5 Z" class="kg-dot low-r"/>
   <text x="335" y="583" class="callout" text-anchor="start">Eb (pinky)</text>
-  <line x1="328" y1="583" x2="238" y2="602" class="kg-line"/>
+  <line x1="328" y1="583" x2="230" y2="604" class="kg-line"/>
 
-  <rect x="216" y="618" width="20" height="13" rx="6.5" class="kg-dot low-r"/>
+  <path d="M226,612 L240,611 A6,6 0 1,1 240,623 L226,622 Z" class="kg-dot low-r"/>
   <text x="335" y="628" class="callout" text-anchor="start">C (pinky)</text>
-  <line x1="328" y1="628" x2="238" y2="624" class="kg-line"/>
+  <line x1="328" y1="628" x2="242" y2="617" class="kg-line"/>
 </svg>
       <p class="kg-note">Purple = octave key, orange = left hand, blue = right hand, teal = left pinky, dark teal = right pinky, rose = side/front keys, light blue = bis Bb key, violet = palm keys. One horn, top to bottom — left hand plays the upper body, right hand continues further down the same instrument.</p>
     </div>
@@ -878,12 +879,12 @@ FINGERING['C6']  = ['oct', ...REG2['C']];
 FINGERING['C#6'] = ['oct', ...REG2['C#']];
 
 const AUX_META = {
-  lowBb: {label:'Low Bb',  group:'low',  className:'low-l'},
-  lowB:  {label:'Low B',   group:'low',  className:'low-l'},
-  lowC:  {label:'Low C',   group:'low',  className:'low-r'},
-  lowCs: {label:'Low C#',  group:'low',  className:'low-l'},
-  lowEb: {label:'Low Eb',  group:'low',  className:'low-r'},
-  keyGs: {label:'G# key',  group:'low',  className:'low-l'},
+  keyGs: {label:'G# key',  group:'lowL',  className:'low-l'},
+  lowCs: {label:'Low C#',  group:'lowL',  className:'low-l'},
+  lowB:  {label:'Low B',   group:'lowL',  className:'low-l'},
+  lowBb: {label:'Low Bb',  group:'lowL',  className:'low-l'},
+  lowEb: {label:'Low Eb',  group:'lowR',  className:'low-r'},
+  lowC:  {label:'Low C',   group:'lowR',  className:'low-r'},
   sideBb:{label:'Side Bb', group:'side', className:'side'},
   highFs:{label:'High F# key', group:'side', className:'side'},
   sideE: {label:'Side E',  group:'side', className:'side'},
@@ -1249,7 +1250,7 @@ function demoSongMinuet(){
 const BASE_LANES = ['oct','l1','l2','l3','r1','r2','r3'];
 const BASE_LANE_CLASS = {oct:'oct', l1:'lh', l2:'lh', l3:'lh', r1:'rh', r2:'rh', r3:'rh'};
 const BASE_LANE_LABEL = {oct:'Oct', l1:'L1', l2:'L2', l3:'L3', r1:'R1', r2:'R2', r3:'R3'};
-const GROUP_ORDER = ['low','side','palm'];
+const GROUP_ORDER = ['lowL','lowR','side','palm'];
 
 let events = [];
 let originalEvents = []; // the song's written notes exactly as parsed, before any octave shift

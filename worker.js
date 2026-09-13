@@ -66,7 +66,14 @@ export default {
       const session = await getSession(request, env);
       if (session) return Response.redirect(new URL("/app.html", request.url), 302);
       return new Response(landingPage(), {
-        headers: { "Content-Type": "text/html;charset=UTF-8" },
+        headers: {
+          "Content-Type": "text/html;charset=UTF-8",
+          // Safe to cache briefly: this response never contains per-user content (a
+          // logged-in visitor gets redirected above, before this line ever runs).
+          // Short duration keeps content updates from being stuck behind a stale cache
+          // for long, while still meaningfully cutting repeat-visit Worker invocations.
+          "Cache-Control": "public, max-age=300",
+        },
       });
     }
 
