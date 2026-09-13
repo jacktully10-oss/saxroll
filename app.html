@@ -21,6 +21,7 @@
     --lh: #D97A34;
     --rh: #35618F;
     --low: #4FD9B0;
+    --low-r: #1F8A8C;
     --side: #E85D75;
     --palm: #B98CE0;
     --good: #6FCF97;
@@ -69,8 +70,9 @@
   .key-guide-body{
     margin:10px 0 0; padding:24px;
     background:var(--panel); border:1px solid var(--line); border-radius:10px;
+    overflow-x:auto;
   }
-  .sax-diagram{ width:100%; max-width:520px; height:auto; display:block; margin:0 auto; }
+  .sax-diagram{ width:100%; max-width:520px; min-width:460px; height:auto; display:block; margin:0 auto; }
   .fs-hover-btn{
     position:absolute; top:12px; right:12px; z-index:15;
     background:rgba(16,22,28,.88); color:var(--ink); border:1px solid var(--line);
@@ -86,8 +88,8 @@
   .kg-dot.oct{ fill:var(--oct); }
   .kg-dot.lh{ fill:var(--lh); }
   .kg-dot.rh{ fill:var(--rh); }
-  .kg-dot.low-l{ fill:var(--lh); }
-  .kg-dot.low-r{ fill:var(--rh); }
+  .kg-dot.low-l{ fill:var(--low); }
+  .kg-dot.low-r{ fill:var(--low-r); }
   .kg-dot.side{ fill:var(--side); }
   .kg-dot.palm{ fill:var(--palm); }
   .kg-dot.aux{ fill:#7FA8C9; }
@@ -113,7 +115,7 @@
     fill:#10161C; text-anchor:middle;
   }
   .kg-finger-label{
-    font-family:'Inter',sans-serif; font-size:11px; font-weight:700; fill:#3D2A0F; text-anchor:middle;
+    font-family:'Inter',sans-serif; font-size:11px; font-weight:700; fill:var(--ink-dim); text-anchor:middle;
   }
   .kg-sub-label{
     font-family:'Inter',sans-serif; font-size:11px; font-weight:700;
@@ -172,6 +174,7 @@
   body.is-fullscreen .lane{
     flex:1 1 0; min-height:34px; margin:4px 0;
   }
+  body.is-fullscreen .bar{ border-radius:12px; }
   body.is-fullscreen .lane-label{ font-size:16px; width:120px; flex:0 0 120px; }
   body.is-fullscreen .now-line{ left:120px; }
   body.is-fullscreen .open-note-window{ left:120px; }
@@ -271,8 +274,8 @@
   .bar.oct{background:var(--oct, #6B4BA8);}
   .bar.lh{background:var(--lh, #D97A34);}
   .bar.rh{background:var(--rh, #35618F);}
-  .bar.low-l{background:var(--lh, #D97A34);}
-  .bar.low-r{background:var(--rh, #35618F);}
+  .bar.low-l{background:var(--low, #4FD9B0);}
+  .bar.low-r{background:var(--low-r, #1F8A8C);}
   .bar.side{background:var(--side, #E85D75);}
   .bar.palm{background:var(--palm, #B98CE0);}
   .trill-zigzag{
@@ -345,6 +348,62 @@
   .difficulty-badge.diff-expert{ background:rgba(184,71,71,.2); color:#D9605F; }
   .card p{color:var(--ink-dim); font-size:13px; line-height:1.6;}
 
+  .drawer-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    opacity:0; pointer-events:none; transition:opacity .2s ease; z-index:40;
+  }
+  .drawer-backdrop.open{ opacity:1; pointer-events:auto; }
+
+  .side-drawer{
+    position:fixed; top:0; left:0; bottom:0; width:280px; max-width:82vw;
+    background:var(--panel); border-right:1px solid var(--line);
+    transform:translateX(-100%); transition:transform .22s ease;
+    z-index:41; overflow-y:auto; padding:18px 0 24px;
+  }
+  .side-drawer.open{ transform:translateX(0); }
+  .drawer-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 18px 16px; margin-bottom:8px; border-bottom:1px solid var(--line);
+  }
+  .drawer-title{ font-family:'Fraunces',serif; font-size:19px; color:var(--ink); }
+  .drawer-title em{ color:var(--brass); font-style:italic; }
+  #drawerCloseBtn, #infoCloseBtn{
+    background:transparent; border:none; color:var(--ink-dim); font-size:16px;
+    cursor:pointer; padding:4px 8px;
+  }
+  .drawer-section-label{
+    font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;
+    padding:14px 18px 6px; font-weight:600;
+  }
+  .drawer-item{
+    display:block; width:100%; text-align:left; background:transparent; border:none;
+    color:var(--ink); font-family:inherit; font-size:14px; padding:11px 18px;
+    cursor:pointer; transition:background .15s ease;
+  }
+  .drawer-item:hover:not(:disabled){ background:rgba(255,255,255,.05); }
+  .drawer-item-active{ color:var(--brass); font-weight:600; cursor:default; opacity:1; }
+  .wip-tag{
+    display:inline-block; font-size:9.5px; font-weight:700; letter-spacing:.04em;
+    color:var(--brass); border:1px solid var(--brass); border-radius:4px;
+    padding:1px 5px; margin-left:6px; vertical-align:middle;
+  }
+
+  .info-modal{
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(.96);
+    width:560px; max-width:90vw; max-height:82vh;
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    opacity:0; pointer-events:none; transition:opacity .18s ease, transform .18s ease;
+    z-index:41; display:flex; flex-direction:column;
+  }
+  .info-modal.open{ opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
+  .info-modal-header{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border-bottom:1px solid var(--line); flex:0 0 auto;
+  }
+  .info-modal-body{ padding:16px 20px 22px; overflow-y:auto; }
+  .info-modal-body p{ color:var(--ink-dim); font-size:13.5px; line-height:1.65; margin:0 0 14px; }
+  .info-modal-body strong{ color:var(--ink); }
+
   .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;}
   button{
     font-family:'Inter',sans-serif;
@@ -362,7 +421,7 @@
   }
   input[type=range]{accent-color:var(--brass);}
   .row{display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--ink-dim);}
-  .scrub{width:100%; }
+  .scrub{flex:1 1 auto; min-width:0;}
   .time{font-variant-numeric:tabular-nums; color:var(--ink-dim); font-size:12px;}
 
   .status{font-size:12.5px; margin-top:10px; color:var(--ink-dim);}
@@ -373,6 +432,16 @@
   .demo-group-label{
     font-size:11px; color:var(--ink-dim); text-transform:uppercase; letter-spacing:.06em;
     margin:14px 0 8px; font-weight:600;
+  }
+  .demo-select-row{
+    display:flex; align-items:center; gap:10px; margin:10px 0;
+  }
+  .demo-select-label{
+    font-size:12.5px; color:var(--ink-dim); flex:0 0 auto; min-width:108px;
+  }
+  .demo-select{
+    flex:1 1 auto; min-width:0; background:#0E141A; border:1px solid var(--line);
+    border-radius:6px; color:var(--ink); padding:7px 9px; font-family:inherit; font-size:13px;
   }
   .demo-controls{ margin-top:0; }
   .demo-controls button{
@@ -413,9 +482,12 @@
 
 <header class="top">
   <div class="inner" style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap;">
-    <div>
-      <h1>Sax <em>Roll</em></h1>
-      <p>Turn any sheet music into a scrolling fingering guide — no reading required, just follow the roll.</p>
+    <div style="display:flex; align-items:flex-start; gap:12px;">
+      <button id="menuBtn" type="button" aria-label="Menu" style="background:transparent;border:1px solid var(--line);border-radius:8px;color:var(--ink);width:38px;height:38px;flex:0 0 auto;font-size:16px;cursor:pointer;padding:0;">☰</button>
+      <div>
+        <h1>Sax <em>Roll</em></h1>
+        <p>Turn any sheet music into a scrolling fingering guide — no reading required, just follow the roll.</p>
+      </div>
     </div>
     <div style="flex:0 0 auto;">
       <button id="subscribeBtn" type="button" style="background:var(--brass);color:#20150A;border:none;padding:9px 16px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">Subscribe</button>
@@ -425,102 +497,142 @@
   </div>
 </header>
 
-<div class="wrap">
+<div id="drawerBackdrop" class="drawer-backdrop"></div>
+<nav id="sideDrawer" class="side-drawer" aria-label="Main menu">
+  <div class="drawer-header">
+    <span class="drawer-title">Sax <em>Roll</em></span>
+    <button id="drawerCloseBtn" type="button" aria-label="Close menu">✕</button>
+  </div>
+  <div class="drawer-section-label">Current</div>
+  <button class="drawer-item drawer-item-active" type="button" disabled>Alto Sax Roll</button>
+  <div class="drawer-section-label">More rolls coming soon</div>
+  <button class="drawer-item" type="button" id="clarinetNavBtn">Clarinet Roll <span class="wip-tag">WIP</span></button>
+  <button class="drawer-item" type="button" id="infoNavBtn">Info — how to use Sax Roll</button>
+</nav>
 
-  <details class="file-help" style="margin-top:14px;">
-    <summary>Features &amp; how to use Sax Roll</summary>
-    <div class="file-help-body">
-      <p><strong>What it does:</strong> turns sheet music of any song into a scrolling fingering guide — colored bars roll toward a fixed "now" line, showing exactly which keys to press, timed to the actual music. Works from <strong>any sheet music you've got</strong> — a PDF, a scan, or an already-digital file — not just a narrow set of pre-loaded songs.</p>
-      <p><strong>Getting started:</strong> tap "Choose File" below and pick a MusicXML file (or try one of the demo buttons first with no file needed), then hit Play. Only have a PDF or a scan? See "Where do I get a MusicXML file?" just below — it walks through converting any sheet music into a file this can read. Follow the bars as they reach the now line — each colored lane is a specific key on the horn (see the Key guide below for exactly which).</p>
-      <p><strong>Tempo:</strong> the bpm slider and number box (top of the Play card) let you slow a song down to isolate hard passages, or speed it up — from 1 to 250 bpm, independent of what the file's original tempo was.</p>
-      <p><strong>Trills:</strong> notes marked as trills show a zigzag line instead of a solid bar in whichever key needs to rapidly alternate — the sound alternates too, not just the visual.</p>
-      <p><strong>Fullscreen:</strong> the ⛶ Fullscreen button expands the highway to fill your whole screen with on-screen play/tempo controls, useful for practicing at a distance from your device.</p>
-      <p><strong>Saved songs:</strong> once you've loaded a song from a file, save it under a name so you don't need to re-upload it next time — stored on this device, in this browser.</p>
-    </div>
-  </details>
+<div id="infoBackdrop" class="drawer-backdrop"></div>
+<div id="infoModal" class="info-modal" role="dialog" aria-label="How Sax Roll works">
+  <div class="info-modal-header">
+    <span class="drawer-title">How Sax Roll works</span>
+    <button id="infoCloseBtn" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="info-modal-body">
+    <p><strong>What it does:</strong> turns sheet music of any song into a scrolling fingering guide — colored bars roll toward a fixed "now" line, showing exactly which keys to press, timed to the actual music. Works from <strong>any sheet music you've got</strong> — a PDF, a scan, or an already-digital file — not just a narrow set of pre-loaded songs.</p>
+    <p><strong>Getting started:</strong> tap "Choose File" and pick a MusicXML file (or try one of the demo buttons first with no file needed), then hit Play. Only have a PDF or a scan? See "Where do I get a MusicXML file?" on the Load a song card — it walks through converting any sheet music into a file this can read. Follow the bars as they reach the now line — each colored lane is a specific key on the horn (see the Key guide for exactly which).</p>
+    <p><strong>Tempo:</strong> the bpm slider and number box on the Play card let you slow a song down to isolate hard passages, or speed it up — from 1 to 250 bpm, independent of what the file's original tempo was. Slowing down also spaces the bars out more, making fast passages easier to read.</p>
+    <p><strong>Difficulty &amp; Simplify:</strong> every song gets an automatic difficulty estimate (Beginner through Expert) based on how fast, wide-ranging, and technically demanding it actually is. If a song's too hard as written, the Simplify dropdown has 5 levels — Light through Crazy Easy — that reduce note density and swap a few of the hardest fingerings for easier nearby ones, so any song can be made approachable at any skill level.</p>
+    <p><strong>Instrument &amp; Octave:</strong> switch between Alto, Soprano, Tenor, and Baritone to get correct fingerings and concert pitch for your actual horn. The Octave control shifts a song up or down a full octave if it's written awkwardly high or low — it'll refuse the shift if any note would fall outside the playable range, rather than guessing.</p>
+    <p><strong>Trills:</strong> notes marked as trills show a zigzag line instead of a solid bar in whichever key needs to rapidly alternate — the sound alternates too, not just the visual.</p>
+    <p><strong>Fullscreen:</strong> the ⛶ Fullscreen button expands the highway to fill your whole screen with on-screen play/tempo controls, useful for practicing at a distance from your device.</p>
+    <p><strong>Saved songs:</strong> once you've loaded a song from a file, save it under a name so you don't need to re-upload it next time — stored on this device, in this browser.</p>
+  </div>
+</div>
+
+<div id="clarinetModal" class="info-modal" role="dialog" aria-label="Clarinet Roll — work in progress">
+  <div class="info-modal-header">
+    <span class="drawer-title">Clarinet Roll <span class="wip-tag">WIP</span></span>
+    <button id="clarinetCloseBtn" type="button" aria-label="Close">✕</button>
+  </div>
+  <div class="info-modal-body">
+    <p><strong>Not ready to play yet</strong> — this is a placeholder while the clarinet version gets built. Clarinet fingering is a genuinely different system from saxophone (not a reskin): a register key that jumps a twelfth instead of an octave, a "break" between the low and middle registers with its own special fingerings, and different key names throughout.</p>
+    <p><strong>Already verified:</strong> the full fingering table for the practical range (E3 to C6, 33 notes) is worked out and cross-checked against multiple sources, along with the correct transposition for Bb clarinet.</p>
+    <p><strong>Still needed:</strong> a traced key diagram (the same photo-based process used for the sax diagram), and wiring the fingering data into the highway and audio engine. Check back soon.</p>
+  </div>
+</div>
+
+
+<div class="wrap">
 
   <details class="key-guide">
     <summary>Key guide — what L1, R3, etc. mean</summary>
     <div class="key-guide-body">
-      <svg viewBox="0 0 700 900" class="sax-diagram" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="brassGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#7A5A2E"/><stop offset="30%" stop-color="#E8C275"/>
-            <stop offset="50%" stop-color="#D9A24B"/><stop offset="70%" stop-color="#C08A3E"/>
-            <stop offset="100%" stop-color="#7A5A2E"/>
-          </linearGradient>
-        </defs>
+      <svg viewBox="-135 -15 560 850" class="sax-diagram" xmlns="http://www.w3.org/2000/svg">
+  <path d="M34.4,0.0 C34.0,7.6 54.9,40.6 71.3,56.0 C87.7,71.5 118.9,76.6 132.9,92.5 C146.8,108.5 157.7,129.3 154.9,152.0 C152.2,174.7 124.0,201.8 116.3,228.8"
+        fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M200.4,126.1 C183.1,59.6 101.5,31.2 73.9,10.2 C46.2,-10.8 34.8,-7.6 34.4,0.0"
+        fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M217.6,192.5 C219,175 210,145 200.4,126.1" fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M116.3,228.8 L217.6,192.5 L235,650 L134,690 Z" fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linejoin="round"/>
 
-        <!-- single horn: neck, body (long enough for both hands), bow, bell —
-             one continuous instrument, so there's no way to misread which hand
-             plays higher up versus lower down. -->
-        <ellipse cx="418" cy="30" rx="10" ry="16" fill="url(#brassGrad)"/>
-        <path d="M416,42 Q368,61 360,111" fill="none" stroke="url(#brassGrad)" stroke-width="24" stroke-linecap="round"/>
-        <path d="M332,111 L388,111 L393,730 L327,730 Z" fill="url(#brassGrad)"/>
-        <path d="M360,730 Q360,785 412,785" fill="none" stroke="url(#brassGrad)" stroke-width="50" stroke-linecap="round"/>
-        <path d="M412,785 L412,650" fill="none" stroke="url(#brassGrad)" stroke-width="50" stroke-linecap="round"/>
-        <path d="M394,650 C390,618 392,593 401,579 C408,569 421,563 435,565 C456,568 469,583 464,602 C459,621 446,641 435,658 Z" fill="url(#brassGrad)"/>
+  <path d="M60,60 L76,68 L60,76 Z" class="kg-dot oct"/>
+  <text x="8" y="71" class="callout" text-anchor="end">Octave</text>
+  <line x1="14" y1="68" x2="53" y2="68" class="kg-line"/>
 
-        <!-- LEFT HAND (upper body) -->
-        <path d="M312,55 L332,66 L312,77 Z" class="kg-dot oct"/>
-        <text x="270" y="70" class="kg-callout-label" text-anchor="end">Octave</text>
-        <line x1="278" y1="66" x2="308" y2="66" class="kg-line"/>
+  <circle cx="88" cy="128" r="7" class="kg-dot palm"/>
+  <text x="8" y="110" class="callout" text-anchor="end">Palm Eb</text>
+  <line x1="14" y1="110" x2="81" y2="125" class="kg-line"/>
 
-        <circle cx="315" cy="120" r="12" class="kg-dot palm"/><text x="315" y="123" class="kg-sub-label">D</text>
-        <circle cx="335" cy="105" r="12" class="kg-dot palm"/><text x="335" y="108" class="kg-sub-label">Eb</text>
-        <circle cx="335" cy="135" r="12" class="kg-dot palm"/><text x="335" y="138" class="kg-sub-label">F</text>
-        <text x="270" y="112" class="kg-callout-label" text-anchor="end">Palm</text>
-        <line x1="278" y1="112" x2="303" y2="118" class="kg-line"/>
+  <circle cx="68" cy="142" r="7" class="kg-dot palm"/>
+  <text x="8" y="142" class="callout" text-anchor="end">Palm D</text>
+  <line x1="14" y1="142" x2="61" y2="142" class="kg-line"/>
 
-        <circle cx="312" cy="175" r="11" class="kg-dot side"/>
-        <text x="270" y="179" class="kg-callout-label" text-anchor="end">Front F</text>
-        <line x1="278" y1="175" x2="301" y2="175" class="kg-line"/>
+  <circle cx="88" cy="156" r="7" class="kg-dot palm"/>
+  <text x="8" y="174" class="callout" text-anchor="end">Palm F</text>
+  <line x1="14" y1="174" x2="81" y2="159" class="kg-line"/>
 
-        <circle cx="360" cy="230" r="30" class="kg-dot lh"/><text x="360" y="237" class="kg-label-in">L1</text>
-        <text x="360" y="273" class="kg-finger-label">index</text>
+  <circle cx="66" cy="200" r="8" class="kg-dot side"/>
+  <text x="8" y="203" class="callout" text-anchor="end">Front F</text>
+  <line x1="14" y1="200" x2="58" y2="200" class="kg-line"/>
 
-        <!-- bis Bb key: small key between L1 and L2, articulated to L2, giving an
-             alternate Bb fingering alongside the side Bb already shown -->
-        <circle cx="395" cy="272" r="9" class="kg-dot aux"/>
-        <text x="470" y="276" class="kg-callout-label" text-anchor="start">Bis Bb</text>
-        <line x1="404" y1="272" x2="448" y2="272" class="kg-line"/>
-        <circle cx="360" cy="315" r="30" class="kg-dot lh"/><text x="360" y="322" class="kg-label-in">L2</text>
-        <text x="360" y="358" class="kg-finger-label">middle</text>
-        <circle cx="360" cy="400" r="30" class="kg-dot lh"/><text x="360" y="407" class="kg-label-in">L3</text>
-        <text x="360" y="443" class="kg-finger-label">ring</text>
+  <circle cx="150" cy="270" r="20" class="kg-dot lh"/><text x="150" y="275" class="label-in">L1</text>
+  <text x="150" y="298" class="finger-label">index</text>
 
-        <!-- left pinky, tight at L3 — real layout is a cross shape, not a stack: G# is a
-             standalone round key on top, C# and B sit side-by-side below it, and Bb is a
-             wider paddle at the bottom -->
-        <circle cx="272" cy="405" r="11" class="kg-dot low-l"/><text x="272" y="408" class="kg-sub-label">G#</text>
-        <rect x="242" y="421" width="26" height="15" rx="7" class="kg-dot low-l"/><text x="255" y="432" class="kg-sub-label">C#</text>
-        <rect x="272" y="421" width="26" height="15" rx="7" class="kg-dot low-l"/><text x="285" y="432" class="kg-sub-label">B</text>
-        <rect x="250" y="440" width="42" height="16" rx="8" class="kg-dot low-l"/><text x="271" y="452" class="kg-sub-label">Bb</text>
-        <text x="200" y="437" class="kg-callout-label" text-anchor="end">Left pinky</text>
-        <line x1="205" y1="434" x2="238" y2="428" class="kg-line"/>
+  <circle cx="175" cy="300" r="6" class="kg-dot low-l"/>
+  <text x="330" y="275" class="callout" text-anchor="start">Bis Bb</text>
+  <line x1="181" y1="300" x2="323" y2="277" class="kg-line"/>
 
-        <!-- RIGHT HAND (lower body — continuing down the SAME horn) -->
-        <circle cx="398" cy="462" r="11" class="kg-dot side"/><text x="398" y="465" class="kg-sub-label">Bb</text>
-        <circle cx="415" cy="478" r="11" class="kg-dot side"/><text x="415" y="481" class="kg-sub-label">C</text>
-        <circle cx="432" cy="494" r="11" class="kg-dot side"/><text x="432" y="497" class="kg-sub-label">E</text>
-        <text x="470" y="478" class="kg-callout-label" text-anchor="start">Side</text>
-        <line x1="443" y1="481" x2="454" y2="481" class="kg-line"/>
+  <circle cx="158" cy="335" r="20" class="kg-dot lh"/><text x="158" y="340" class="label-in">L2</text>
+  <text x="158" y="363" class="finger-label">middle</text>
 
-        <circle cx="360" cy="530" r="30" class="kg-dot rh"/><text x="360" y="537" class="kg-label-in">R1</text>
-        <text x="360" y="573" class="kg-finger-label">index</text>
+  <circle cx="166" cy="400" r="20" class="kg-dot lh"/><text x="166" y="405" class="label-in">L3</text>
+  <text x="166" y="428" class="finger-label">ring</text>
 
-        <circle cx="360" cy="615" r="30" class="kg-dot rh"/><text x="360" y="622" class="kg-label-in">R2</text>
-        <text x="360" y="658" class="kg-finger-label">middle</text>
-        <circle cx="360" cy="700" r="30" class="kg-dot rh"/><text x="360" y="707" class="kg-label-in">R3</text>
-        <text x="360" y="743" class="kg-finger-label">ring</text>
+  <circle cx="55" cy="370" r="8" class="kg-dot low-l"/>
+  <text x="8" y="355" class="callout" text-anchor="end">G#</text>
+  <line x1="14" y1="355" x2="49" y2="367" class="kg-line"/>
 
-        <!-- right pinky, tight at R3 -->
-        <rect x="418" y="720" width="30" height="17" rx="8" class="kg-dot low-r"/><text x="433" y="732" class="kg-sub-label">Eb</text>
-        <rect x="418" y="742" width="30" height="17" rx="8" class="kg-dot low-r"/><text x="433" y="754" class="kg-sub-label">C</text>
-        <text x="470" y="738" class="kg-callout-label" text-anchor="start">Right pinky</text>
-        <line x1="452" y1="735" x2="463" y2="735" class="kg-line"/>
-      </svg>
-      <p class="kg-note">Purple = octave key, orange = left hand (including left pinky), blue = right hand (including right pinky), rose = side/front keys, light blue = bis Bb key, violet = palm keys. One horn, top to bottom — left hand plays the upper body, right hand continues further down the same instrument.</p>
+  <rect x="45" y="395" width="20" height="13" rx="6.5" class="kg-dot low-l"/>
+  <text x="8" y="402" class="callout" text-anchor="end">C#</text>
+  <line x1="14" y1="402" x2="43" y2="402" class="kg-line"/>
+
+  <rect x="45" y="420" width="20" height="13" rx="6.5" class="kg-dot low-l"/>
+  <text x="8" y="444" class="callout" text-anchor="end">B</text>
+  <line x1="14" y1="444" x2="43" y2="428" class="kg-line"/>
+
+  <rect x="42" y="445" width="28" height="14" rx="7" class="kg-dot low-l"/>
+  <text x="8" y="485" class="callout" text-anchor="end">Bb (pinky)</text>
+  <line x1="14" y1="485" x2="40" y2="454" class="kg-line"/>
+
+  <circle cx="174" cy="465" r="20" class="kg-dot rh"/><text x="174" y="470" class="label-in">R1</text>
+  <text x="174" y="493" class="finger-label">index</text>
+
+  <circle cx="252" cy="470" r="7" class="kg-dot side"/>
+  <text x="335" y="455" class="callout" text-anchor="start">Side Bb</text>
+  <line x1="259" y1="470" x2="328" y2="457" class="kg-line"/>
+
+  <circle cx="270" cy="495" r="7" class="kg-dot side"/>
+  <text x="335" y="500" class="callout" text-anchor="start">Side C</text>
+  <line x1="277" y1="495" x2="328" y2="500" class="kg-line"/>
+
+  <circle cx="272" cy="525" r="7" class="kg-dot side"/>
+  <text x="335" y="546" class="callout" text-anchor="start">Side E</text>
+  <line x1="279" y1="525" x2="328" y2="544" class="kg-line"/>
+
+  <circle cx="182" cy="530" r="20" class="kg-dot rh"/><text x="182" y="535" class="label-in">R2</text>
+  <text x="182" y="558" class="finger-label">middle</text>
+
+  <circle cx="190" cy="595" r="20" class="kg-dot rh"/><text x="190" y="600" class="label-in">R3</text>
+  <text x="190" y="623" class="finger-label">ring</text>
+
+  <rect x="216" y="598" width="20" height="13" rx="6.5" class="kg-dot low-r"/>
+  <text x="335" y="583" class="callout" text-anchor="start">Eb (pinky)</text>
+  <line x1="328" y1="583" x2="238" y2="602" class="kg-line"/>
+
+  <rect x="216" y="618" width="20" height="13" rx="6.5" class="kg-dot low-r"/>
+  <text x="335" y="628" class="callout" text-anchor="start">C (pinky)</text>
+  <line x1="328" y1="628" x2="238" y2="624" class="kg-line"/>
+</svg>
+      <p class="kg-note">Purple = octave key, orange = left hand, blue = right hand, teal = left pinky, dark teal = right pinky, rose = side/front keys, light blue = bis Bb key, violet = palm keys. One horn, top to bottom — left hand plays the upper body, right hand continues further down the same instrument.</p>
     </div>
   </details>
 
@@ -556,58 +668,7 @@
 
   <section>
     <div class="card">
-      <h2><span class="badge">1</span>Load a song</h2>
-      <p class="disclaimer" id="demoBanner" style="display:none;"><strong>🎷 You're in the free demo</strong> — try the classical pieces below. <a href="/">Subscribe</a> to upload and play any song of your own.</p>
-      <p class="disclaimer" id="uploadDisclaimer"><strong>⚠ This only reads MusicXML files</strong> (.xml, .musicxml, or .mxl) — not PDFs, images, or scanned sheet music. A PDF's notes are pixels, not data, so there's nothing here to parse directly.</p>
-      <details class="file-help" id="fileHelpDetails">
-        <summary>Where do I get a MusicXML file?</summary>
-        <div class="file-help-body">
-          <p><strong>If it's already digital sheet music</strong> — from MuseScore, Finale, Sibelius, Dorico, Flat.io, or Soundslice, just export/download it as MusicXML from whichever of those made it.</p>
-          <p><strong>Free scores:</strong> <a href="https://musescore.com" target="_blank" rel="noopener">musescore.com</a> (huge community library, most scores downloadable as MusicXML), <a href="https://musopen.org" target="_blank" rel="noopener">musopen.org</a> (public-domain classical), and <a href="https://flat.io" target="_blank" rel="noopener">flat.io</a> all offer direct MusicXML downloads.</p>
-          <p><strong>If all you have is a PDF</strong> (bought sheet music, a scan, IMSLP, etc.), convert it first:</p>
-          <ol>
-            <li>Download <strong>MuseScore 4</strong> (free) from <a href="https://musescore.org" target="_blank" rel="noopener">musescore.org</a> — desktop app, not the mobile app or website.</li>
-            <li>Open it, then <strong>File → Import PDF...</strong> (a separate option from regular "Open" — this is the one that reads the PDF into notes).</li>
-            <li>Wait for it to process. It'll open as an actual editable score, not a picture.</li>
-            <li>Skim it against the original PDF and fix any notes/rhythms it misread — automatic reading isn't perfect, especially in busy measures.</li>
-            <li><strong>File → Export...</strong>, set the format dropdown to <strong>MusicXML</strong> (not PDF, which is the default), and save.</li>
-            <li>Upload that exported file here.</li>
-          </ol>
-          <p class="file-help-note">This whole process is for your own copy of music you already own or have rights to use — same as using a fingering chart alongside any sheet music.</p>
-        </div>
-      </details>
-      <div class="controls" id="uploadControls">
-        <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl,.pdf">
-      </div>
-      <p class="section-divider" id="uploadDivider">— or try a demo, no file needed —</p>
-      <p class="demo-group-label">Classical pieces (public domain)</p>
-      <div class="controls demo-controls">
-        <button class="secondary" id="demoBtn" type="button">Ode to Joy</button>
-        <button class="secondary" id="demoBtnTwinkle" type="button">Twinkle Twinkle</button>
-        <button class="secondary" id="demoBtnFurElise" type="button">Für Elise</button>
-        <button class="secondary" id="demoBtnJoyToWorld" type="button">Joy to the World</button>
-        <button class="secondary" id="demoBtnMinuet" type="button">Minuet in G</button>
-      </div>
-      <p class="demo-group-label">See a specific feature</p>
-      <div class="controls demo-controls">
-        <button class="secondary" id="demoBtn2" type="button">Palm keys in action</button>
-        <button class="secondary" id="demoBtn3" type="button">Trill notation</button>
-      </div>
-      <div class="status" id="status"></div>
-
-      <div class="source-songs-box" id="sourceSongsBox">
-        <p class="source-songs-heading">Don't have the XML for a song? I'll source it for you.</p>
-        <div class="controls">
-          <button class="secondary" id="buyXmlRequestBtn" type="button">3 songs sourced — $3</button>
-          <button class="secondary" id="buyXmlCacheBtn" type="button">My XML cache + 3 songs — $5</button>
-        </div>
-        <p class="source-songs-note">You'll be asked which 3 songs you want during checkout. After paying, email <a href="mailto:saxophoneroll@gmail.com">saxophoneroll@gmail.com</a> — for the $5 option, attach your own XML files there too.</p>
-        <div class="status" id="purchaseStatus"></div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2><span class="badge">2</span>Play it back<span class="difficulty-badge" id="difficultyBadge"></span></h2>
+      <h2>Play it back<span class="difficulty-badge" id="difficultyBadge"></span></h2>
       <div class="controls">
         <button id="playBtn" disabled>▶ Play</button>
         <button class="secondary" id="restartBtn" disabled>⟲ Restart</button>
@@ -629,9 +690,11 @@
             <option value="1">Light</option>
             <option value="2">Medium</option>
             <option value="3">Strong</option>
+            <option value="4">Very Strong</option>
+            <option value="5">Crazy Easy</option>
           </select>
         </div>
-        <p class="simplify-warning">Simplifying can change a few of the actual notes in the song (swapping a hard-to-finger note for an easier nearby one) — it's meant to make a piece approachable, not a note-perfect version of the real thing.</p>
+        <p class="simplify-warning" id="simplifyWarning">Simplifying can change a few of the actual notes in the song (swapping a hard-to-finger note for an easier nearby one) — it's meant to make a piece approachable, not a note-perfect version of the real thing.</p>
         <div class="row">
           Instrument
           <select id="instrumentSelect" style="background:#0E141A;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:5px 8px;font-family:inherit;font-size:13px;">
@@ -654,6 +717,81 @@
       <div class="row" style="margin-top:12px;">
         <input type="range" id="scrub" class="scrub" min="0" max="1000" value="0" disabled>
         <span class="time" id="timeLabel">0:00 / 0:00</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Load a song</h2>
+      <p class="disclaimer" id="demoBanner" style="display:none;"><strong>You're in the free demo</strong> — try the classical pieces below. <a href="/">Subscribe</a> to upload and play any song of your own.</p>
+      <p class="disclaimer" id="uploadDisclaimer"><strong>⚠ This only reads MusicXML files</strong> (.xml, .musicxml, or .mxl) — not PDFs, images, or scanned sheet music. A PDF's notes are pixels, not data, so there's nothing here to parse directly.</p>
+      <details class="file-help" id="fileHelpDetails">
+        <summary>Where do I get a MusicXML file?</summary>
+        <div class="file-help-body">
+          <p><strong>If it's already digital sheet music</strong> — from MuseScore, Finale, Sibelius, Dorico, Flat.io, or Soundslice, just export/download it as MusicXML from whichever of those made it.</p>
+          <p><strong>Free scores:</strong> <a href="https://musescore.com" target="_blank" rel="noopener">musescore.com</a> (huge community library, most scores downloadable as MusicXML), <a href="https://musopen.org" target="_blank" rel="noopener">musopen.org</a> (public-domain classical), and <a href="https://flat.io" target="_blank" rel="noopener">flat.io</a> all offer direct MusicXML downloads.</p>
+          <p><strong>If all you have is a PDF</strong> (bought sheet music, a scan, IMSLP, etc.), convert it first:</p>
+          <ol>
+            <li>Download <strong>MuseScore 4</strong> (free) from <a href="https://musescore.org" target="_blank" rel="noopener">musescore.org</a> — desktop app, not the mobile app or website.</li>
+            <li>Open it, then <strong>File → Import PDF...</strong> (a separate option from regular "Open" — this is the one that reads the PDF into notes).</li>
+            <li>Wait for it to process. It'll open as an actual editable score, not a picture.</li>
+            <li>Skim it against the original PDF and fix any notes/rhythms it misread — automatic reading isn't perfect, especially in busy measures.</li>
+            <li><strong>File → Export...</strong>, set the format dropdown to <strong>MusicXML</strong> (not PDF, which is the default), and save.</li>
+            <li>Upload that exported file here.</li>
+          </ol>
+          <p class="file-help-note">This whole process is for your own copy of music you already own or have rights to use — same as using a fingering chart alongside any sheet music.</p>
+        </div>
+      </details>
+      <div class="controls" id="uploadControls">
+        <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl,.pdf">
+      </div>
+      <p class="section-divider" id="uploadDivider">— or try a demo, no file needed —</p>
+      <div class="demo-select-row">
+        <label class="demo-select-label" for="demoSongSelect">Demo songs</label>
+        <select id="demoSongSelect" class="demo-select">
+          <option value="" selected disabled>Choose a song…</option>
+          <option value="odeToJoy">Ode to Joy</option>
+          <option value="twinkle">Twinkle Twinkle</option>
+          <option value="furElise">Für Elise</option>
+          <option value="joyToWorld">Joy to the World</option>
+          <option value="minuet">Minuet in G</option>
+        </select>
+      </div>
+      <div class="demo-select-row">
+        <label class="demo-select-label" for="scaleSelect">Practice scales</label>
+        <select id="scaleSelect" class="demo-select">
+          <option value="" selected disabled>Choose a major scale…</option>
+          <option value="C4">C major</option>
+          <option value="C#4">C# / Db major</option>
+          <option value="D4">D major</option>
+          <option value="Eb4">Eb major</option>
+          <option value="E4">E major</option>
+          <option value="F4">F major</option>
+          <option value="F#4">F# / Gb major</option>
+          <option value="G4">G major</option>
+          <option value="G#4">Ab major</option>
+          <option value="A4">A major</option>
+          <option value="Bb3">Bb major</option>
+          <option value="B3">B major</option>
+        </select>
+      </div>
+      <div class="demo-select-row">
+        <label class="demo-select-label" for="featureSelect">Specific features</label>
+        <select id="featureSelect" class="demo-select">
+          <option value="" selected disabled>Choose a feature…</option>
+          <option value="palmKeys">Palm keys in action</option>
+          <option value="trill">Trill notation</option>
+        </select>
+      </div>
+      <div class="status" id="status"></div>
+
+      <div class="source-songs-box" id="sourceSongsBox">
+        <p class="source-songs-heading">Don't have the XML for a song? I'll source it for you.</p>
+        <div class="controls">
+          <button class="secondary" id="buyXmlRequestBtn" type="button">3 songs sourced — $3</button>
+          <button class="secondary" id="buyXmlCacheBtn" type="button">My XML cache + 3 songs — $5</button>
+        </div>
+        <p class="source-songs-note">You'll be asked which 3 songs you want during checkout. After paying, email <a href="mailto:saxophoneroll@gmail.com">saxophoneroll@gmail.com</a> — for the $5 option, attach your own XML files there too.</p>
+        <div class="status" id="purchaseStatus"></div>
       </div>
     </div>
 
@@ -913,6 +1051,23 @@ function seqToEvents(seq, secPerBeat, startAt){
   });
 }
 
+// Generates a one-octave major scale ascending then descending back to the tonic,
+// using the same canonical note spellings as the fingering table (via getMidiToKey),
+// so every scale is guaranteed to use fingerings this app already knows.
+const MAJOR_SCALE_STEPS = [0,2,4,5,7,9,11,12];
+function generateMajorScale(rootKey){
+  const midiToKey = getMidiToKey();
+  const rootMidi = keyToMidi(rootKey);
+  const up = MAJOR_SCALE_STEPS.map(step => midiToKey[rootMidi+step]);
+  const down = [...up].reverse().slice(1);
+  return [...up, ...down];
+}
+function demoSongScale(rootKey){
+  const q = 0.4;
+  const seq = generateMajorScale(rootKey);
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+
 // Ode to Joy (Beethoven) — full four-phrase verse (the standard simplified form
 // taught worldwide), played through twice plus a closing phrase, ~60s.
 function demoSong(){
@@ -1019,7 +1174,7 @@ let originalEvents = []; // the song's written notes exactly as parsed, before a
 let octaveShift = 0;
 let songDuration = 0;
 let songBaseTempo = 120;
-const BASE_PX_PER_SEC = 90;
+const BASE_PX_PER_SEC = 115;
 let pxPerSec = BASE_PX_PER_SEC;
 
 // Slowing down practice speed spreads the bars out (easier to read at a glance) instead
@@ -1143,10 +1298,14 @@ function buildLanes(){
 
 function buildLegend(aux){
   const groupsPresent = new Set(aux.map(k=>AUX_META[k].group));
+  const hasLeftPinky = ['lowBb','lowB','lowCs','keyGs'].some(k=>aux.includes(k));
+  const hasRightPinky = ['lowC','lowEb'].some(k=>aux.includes(k));
   const items = [
     {dot:'var(--oct)', label:'thumb octave key', always:true},
-    {dot:'var(--lh)', label:'left hand (incl. left pinky)', always:true},
-    {dot:'var(--rh)', label:'right hand (incl. right pinky)', always:true},
+    {dot:'var(--lh)', label:'left hand', always:true},
+    {dot:'var(--rh)', label:'right hand', always:true},
+    {dot:'var(--low)', label:'left pinky', show: hasLeftPinky},
+    {dot:'var(--low-r)', label:'right pinky', show: hasRightPinky},
     {dot:'var(--side)', label:'side / bis keys', show: groupsPresent.has('side')},
     {dot:'var(--palm)', label:'palm keys', show: groupsPresent.has('palm')},
   ];
@@ -1725,6 +1884,29 @@ function updateTempoDisplay(){
   fsBpmReadout.textContent = bpm;
 }
 
+// Side drawer (hamburger menu) and Info modal
+const sideDrawer = document.getElementById('sideDrawer');
+const drawerBackdrop = document.getElementById('drawerBackdrop');
+const infoModal = document.getElementById('infoModal');
+const infoBackdrop = document.getElementById('infoBackdrop');
+
+function openDrawer(){ sideDrawer.classList.add('open'); drawerBackdrop.classList.add('open'); }
+function closeDrawer(){ sideDrawer.classList.remove('open'); drawerBackdrop.classList.remove('open'); }
+function openInfo(){ infoModal.classList.add('open'); infoBackdrop.classList.add('open'); }
+function closeInfo(){ infoModal.classList.remove('open'); infoBackdrop.classList.remove('open'); }
+const clarinetModal = document.getElementById('clarinetModal');
+function openClarinet(){ clarinetModal.classList.add('open'); infoBackdrop.classList.add('open'); }
+function closeClarinet(){ clarinetModal.classList.remove('open'); infoBackdrop.classList.remove('open'); }
+
+document.getElementById('menuBtn').addEventListener('click', openDrawer);
+document.getElementById('drawerCloseBtn').addEventListener('click', closeDrawer);
+drawerBackdrop.addEventListener('click', closeDrawer);
+document.getElementById('infoNavBtn').addEventListener('click', ()=>{ closeDrawer(); openInfo(); });
+document.getElementById('infoCloseBtn').addEventListener('click', closeInfo);
+document.getElementById('clarinetNavBtn').addEventListener('click', ()=>{ closeDrawer(); openClarinet(); });
+document.getElementById('clarinetCloseBtn').addEventListener('click', closeClarinet);
+infoBackdrop.addEventListener('click', ()=>{ closeInfo(); closeClarinet(); });
+
 speed.addEventListener('input', ()=>{
   updateTempoDisplay();
   scheduleVisualRebuild();
@@ -1853,9 +2035,11 @@ function getMidiToKey(){
 // them when they're too short to matter anyway, or swaps them for a neighboring semitone
 // with a meaningfully easier fingering when one exists. Trills are left completely alone.
 const SIMPLIFY_LEVELS = {
-  1: { dropComplexity: 8,   dropDur: 0.12, swapComplexity: 9, swapImprovement: 4, shortDur: 0.15, minRun: 4 },
-  2: { dropComplexity: 6.5, dropDur: 0.15, swapComplexity: 7, swapImprovement: 3, shortDur: 0.18, minRun: 3 },
-  3: { dropComplexity: 5,   dropDur: 0.18, swapComplexity: 5, swapImprovement: 2, shortDur: 0.22, minRun: 3 },
+  1: { dropComplexity: 8,   dropDur: 0.12, swapComplexity: 9, swapImprovement: 4,   shortDur: 0.15, minRun: 4 },
+  2: { dropComplexity: 6.5, dropDur: 0.15, swapComplexity: 7, swapImprovement: 3,   shortDur: 0.18, minRun: 3 },
+  3: { dropComplexity: 5,   dropDur: 0.18, swapComplexity: 5, swapImprovement: 2,   shortDur: 0.22, minRun: 3 },
+  4: { dropComplexity: 4,   dropDur: 0.22, swapComplexity: 4, swapImprovement: 1.5, shortDur: 0.28, minRun: 2 },
+  5: { dropComplexity: 3,   dropDur: 0.30, swapComplexity: 3, swapImprovement: 1,   shortDur: 0.36, minRun: 2 },
 };
 function simplifyEvents(evs, level){
   const cfg = SIMPLIFY_LEVELS[level] || SIMPLIFY_LEVELS[1];
@@ -1972,41 +2156,47 @@ function applyOctaveShift(newShift){
 document.getElementById('octaveShiftSelect').addEventListener('change', (e)=>{
   applyOctaveShift(parseInt(e.target.value, 10));
 });
+const SIMPLIFY_WARNING_DEFAULT = "Simplifying can change a few of the actual notes in the song (swapping a hard-to-finger note for an easier nearby one) \u2014 it's meant to make a piece approachable, not a note-perfect version of the real thing.";
+const SIMPLIFY_WARNING_EXTREME = "This is a heavy rewrite, not the real song \u2014 it strips almost everything down to just the melody outline so a total beginner can play along with any piece, no matter how hard the original is. Expect most of the original notes and rhythm to be gone.";
 document.getElementById('simplifySelect').addEventListener('change', (e)=>{
   simplifyLevel = parseInt(e.target.value, 10);
+  document.getElementById('simplifyWarning').textContent = simplifyLevel === 5 ? SIMPLIFY_WARNING_EXTREME : SIMPLIFY_WARNING_DEFAULT;
   rebuildEventsFromOriginal();
   const atTime = currentTime();
   buildBars();
   renderAt(atTime);
 });
 
-document.getElementById('demoBtn').addEventListener('click', ()=>{
-  const {events, tempo} = demoSong();
-  loadEvents(events, tempo, 'Loaded: Ode to Joy (Beethoven) — full verse, repeated — public domain.');
+const DEMO_SONGS = {
+  odeToJoy:    { fn: demoSong,          msg: 'Loaded: Ode to Joy (Beethoven) — full verse, repeated — public domain.' },
+  twinkle:     { fn: demoSongTwinkle,   msg: 'Loaded: Twinkle Twinkle / "Ah vous dirai-je, Maman" (Mozart variations theme) — public domain.' },
+  furElise:    { fn: demoSongFurElise,  msg: 'Loaded: Für Elise (Beethoven) — the famous A section, repeated — public domain.' },
+  joyToWorld:  { fn: demoSongJoyToWorld,msg: 'Loaded: Joy to the World (melody attrib. Handel) — public domain.' },
+  minuet:      { fn: demoSongMinuet,    msg: 'Loaded: Minuet in G, BWV Anh. 114 (Petzold) — public domain.' },
+};
+const DEMO_FEATURES = {
+  palmKeys: { fn: demoSongWide,  msg: 'Loaded demo: a wider-range phrase — watch the low and palm key rows appear.' },
+  trill:    { fn: demoSongTrill, msg: 'Loaded demo: a held trill on F#4 — watch for the zigzag.' },
+};
+
+document.getElementById('demoSongSelect').addEventListener('change', (e)=>{
+  const entry = DEMO_SONGS[e.target.value];
+  if (!entry) return;
+  const {events, tempo} = entry.fn();
+  loadEvents(events, tempo, entry.msg);
 });
-document.getElementById('demoBtnTwinkle').addEventListener('click', ()=>{
-  const {events, tempo} = demoSongTwinkle();
-  loadEvents(events, tempo, 'Loaded: Twinkle Twinkle / "Ah vous dirai-je, Maman" (Mozart variations theme) — public domain.');
+document.getElementById('featureSelect').addEventListener('change', (e)=>{
+  const entry = DEMO_FEATURES[e.target.value];
+  if (!entry) return;
+  const {events, tempo} = entry.fn();
+  loadEvents(events, tempo, entry.msg);
 });
-document.getElementById('demoBtnFurElise').addEventListener('click', ()=>{
-  const {events, tempo} = demoSongFurElise();
-  loadEvents(events, tempo, 'Loaded: Für Elise (Beethoven) — the famous A section, repeated — public domain.');
-});
-document.getElementById('demoBtnJoyToWorld').addEventListener('click', ()=>{
-  const {events, tempo} = demoSongJoyToWorld();
-  loadEvents(events, tempo, 'Loaded: Joy to the World (melody attrib. Handel) — public domain.');
-});
-document.getElementById('demoBtnMinuet').addEventListener('click', ()=>{
-  const {events, tempo} = demoSongMinuet();
-  loadEvents(events, tempo, 'Loaded: Minuet in G, BWV Anh. 114 (Petzold) — public domain.');
-});
-document.getElementById('demoBtn2').addEventListener('click', ()=>{
-  const {events, tempo} = demoSongWide();
-  loadEvents(events, tempo, 'Loaded demo: a wider-range phrase — watch the low and palm key rows appear.');
-});
-document.getElementById('demoBtn3').addEventListener('click', ()=>{
-  const {events, tempo} = demoSongTrill();
-  loadEvents(events, tempo, 'Loaded demo: a held trill on F#4 — watch for the zigzag.');
+document.getElementById('scaleSelect').addEventListener('change', (e)=>{
+  const root = e.target.value;
+  if (!root) return;
+  const {events, tempo} = demoSongScale(root);
+  const label = e.target.options[e.target.selectedIndex].textContent;
+  loadEvents(events, tempo, 'Loaded demo: ' + label + ' scale.');
 });
 
 // Demo mode: served at /demo with no login required, uploads disabled, only the
