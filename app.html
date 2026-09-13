@@ -338,6 +338,10 @@
     letter-spacing:.04em; padding:4px 10px; border-radius:12px;
   }
   .difficulty-badge:empty{ display:none; }
+  .streak-badge{
+    font-size:11px; font-weight:700; padding:4px 10px; border-radius:12px;
+    background:rgba(217,162,75,.15); color:var(--brass); white-space:nowrap;
+  }
   .simplify-warning{
     font-size:11.5px; color:var(--ink-dim); line-height:1.5;
     margin:2px 0 4px; padding-left:2px;
@@ -405,6 +409,12 @@
   }
   .info-modal-body{ padding:16px 20px 22px; overflow-y:auto; }
   .info-modal-body p{ color:var(--ink-dim); font-size:13.5px; line-height:1.65; margin:0 0 14px; }
+  .learning-guide-list{
+    color:var(--ink-dim); font-size:13.5px; line-height:1.65; margin:0 0 14px;
+    padding-left:20px;
+  }
+  .learning-guide-list li{ margin-bottom:8px; }
+  .learning-guide-list strong{ color:var(--ink); }
   .info-modal-body strong{ color:var(--ink); }
 
   .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;}
@@ -528,6 +538,15 @@
     <p><strong>Trills:</strong> notes marked as trills show a zigzag line instead of a solid bar in whichever key needs to rapidly alternate — the sound alternates too, not just the visual.</p>
     <p><strong>Fullscreen:</strong> the ⛶ Fullscreen button expands the highway to fill your whole screen with on-screen play/tempo controls, useful for practicing at a distance from your device.</p>
     <p><strong>Saved songs:</strong> once you've loaded a song from a file, save it under a name so you don't need to re-upload it next time — stored on this device, in this browser.</p>
+    <p><strong>Recommended way to learn a new song:</strong> Simplify and Tempo are meant to be used together, not separately — this is the method that actually works, rather than just struggling through a hard song at full speed from the start.</p>
+    <ol class="learning-guide-list">
+      <li>Load the song and set Simplify to the highest level, <strong>Crazy Easy</strong>.</li>
+      <li>Start the tempo slider slow — slow enough to play through comfortably — and gradually speed it up over as many sessions as it takes, until you can play it at the song's <strong>full tempo</strong> at this simplification level.</li>
+      <li>Drop Simplify down <strong>one level</strong> (Crazy Easy → Very Strong). This brings back a bit more of the real song.</li>
+      <li>Repeat the same pattern at the new level: start slow, speed back up to full tempo.</li>
+      <li>Keep working down through the levels the same way — Very Strong → Strong → Medium → Light → Off — one level at a time, always starting slow and building back up to full tempo before moving on.</li>
+      <li>Once you're comfortable at full tempo with Simplify set to Off, you're playing the actual song, at its real speed, having built up to it instead of fighting through it from day one.</li>
+    </ol>
   </div>
 </div>
 
@@ -681,7 +700,7 @@
 
   <section>
     <div class="card">
-      <h2>Play it back<span class="difficulty-badge" id="difficultyBadge"></span></h2>
+      <h2>Play it back<span class="difficulty-badge" id="difficultyBadge"></span><span class="streak-badge" id="streakBadge" style="display:none;"></span></h2>
       <div class="controls">
         <button id="playBtn" disabled>▶ Play</button>
         <button class="secondary" id="restartBtn" disabled>⟲ Restart</button>
@@ -770,6 +789,18 @@
         </select>
       </div>
       <div class="demo-select-row">
+        <label class="demo-select-label" for="librarySelect">Song library</label>
+        <select id="librarySelect" class="demo-select">
+          <option value="" selected disabled>Choose a song…</option>
+          <option value="hotCrossBuns">Hot Cross Buns</option>
+          <option value="maryLamb">Mary Had a Little Lamb</option>
+          <option value="frereJacques">Frère Jacques</option>
+          <option value="auClair">Au Clair de la Lune</option>
+          <option value="rowBoat">Row, Row, Row Your Boat</option>
+          <option value="amazingGrace">Amazing Grace</option>
+        </select>
+      </div>
+      <div class="demo-select-row">
         <label class="demo-select-label" for="scaleSelect">Practice scales</label>
         <select id="scaleSelect" class="demo-select">
           <option value="" selected disabled>Choose a major scale…</option>
@@ -793,6 +824,13 @@
           <option value="" selected disabled>Choose a feature…</option>
           <option value="palmKeys">Palm keys in action</option>
           <option value="trill">Trill notation</option>
+        </select>
+      </div>
+      <div class="demo-select-row" id="clarinetFeatureSelectRow" style="display:none;">
+        <label class="demo-select-label" for="clarinetFeatureSelect">Specific features</label>
+        <select id="clarinetFeatureSelect" class="demo-select">
+          <option value="" selected disabled>Choose a feature…</option>
+          <option value="crossingBreak">Crossing the break</option>
         </select>
       </div>
       <div class="status" id="status"></div>
@@ -821,7 +859,7 @@
 
     <div class="card">
       <h2>About the fingerings</h2>
-      <p>Every fingering in this app — all 33 notes, low Bb3 through high F#6 — has been checked against multiple independent, authoritative fingering references, with full agreement across sources. The one exception is written high F#6, which needs an optional key that not every alto has; that note is flagged when it comes up, and the fingering shown assumes your horn has it. Where a note has other valid alternate fingerings (which is common on saxophone), this app always shows the one standard choice, not every option.</p>
+      <p id="aboutFingeringsText">Every fingering in this app — all 33 notes, low Bb3 through high F#6 — has been checked against multiple independent, authoritative fingering references, with full agreement across sources. The one exception is written high F#6, which needs an optional key that not every alto has; that note is flagged when it comes up, and the fingering shown assumes your horn has it. Where a note has other valid alternate fingerings (which is common on saxophone), this app always shows the one standard choice, not every option.</p>
     </div>
   </section>
 </div>
@@ -1196,6 +1234,21 @@ function demoSongTrill(){
   return { events, tempo: 60/q };
 }
 
+// Clarinet-only: deliberately crosses the break (throat tones <-> clarion register) back
+// and forth, since that transition — not any single hard fingering — is what actually
+// trips up new clarinetists. G4 is the top of the chalumeau/throat notes; B4 is the first
+// clarion note (register key + the low-E fingering, a twelfth up). Repeated several times
+// to make it a real practice loop, not just a one-off demonstration.
+function demoSongClarinetBreak(){
+  const q = 0.5;
+  const onePass = ['G4','A4','Bb4','B4','C5','B4','Bb4','A4','G4'];
+  const passDuration = onePass.length * q;
+  const repeats = Math.max(1, Math.ceil(45 / passDuration));
+  let seq = [];
+  for (let i=0;i<repeats;i++) seq = seq.concat(onePass);
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+
 // Public domain classical excerpts, for the no-upload demo mode.
 // Twinkle Twinkle / "Ah vous dirai-je, Maman" (Mozart's variations theme) —
 // full six-line tune (AABBAA), repeated three times, ~60s.
@@ -1243,6 +1296,50 @@ function demoSongMinuet(){
   const phrase3 = ['B4','C5','B4','A4','G4','F#4','G4','G4'];
   const pass = [...phrase1, ...phrase2, ...phrase1, ...phrase3];
   const seq = [...pass, ...pass, ...pass, ...pass, ...pass];
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+
+// ---------- Curated library: additional public-domain pieces, simple/well-known enough to
+// be safe transcriptions from memory (same standard-simplified-rendition approach as the
+// demos above), aimed at giving new and free/demo users more to actually play. ----------
+function demoSongHotCrossBuns(){
+  const q = 0.5;
+  const pass = ['E4','D4','C4','E4','D4','C4','C4','C4','C4','C4','D4','D4','D4','D4','E4','D4','C4'];
+  const seq = [...pass, ...pass, ...pass];
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+function demoSongMaryLamb(){
+  const q = 0.4;
+  const pass = ['E4','D4','C4','D4','E4','E4','E4','D4','D4','D4','E4','G4','G4','E4','D4','C4','D4','E4','E4','E4','E4','D4','D4','E4','D4','C4'];
+  const seq = [...pass, ...pass];
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+function demoSongFrereJacques(){
+  const q = 0.4;
+  const phrase1 = ['F4','G4','A4','F4'];
+  const phrase2 = ['A4','Bb4','C5'];
+  const phrase3 = ['C5','D5','C5','Bb4','A4','F4'];
+  const phrase4 = ['F4','C4','F4'];
+  const pass = [...phrase1, ...phrase1, ...phrase2, ...phrase2, ...phrase3, ...phrase3, ...phrase4, ...phrase4];
+  const seq = [...pass, ...pass];
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+function demoSongAuClair(){
+  const q = 0.42;
+  const pass = [['C4',1],['C4',1],['C4',1],['D4',1],['E4',2],['D4',2],['C4',1],['E4',1],['D4',1],['D4',1],['C4',2]];
+  const seq = [...pass, ...pass, ...pass];
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+function demoSongRowBoat(){
+  const q = 0.45;
+  const pass = ['C4','C4','C4','D4','E4','E4','D4','E4','F4','G4','C5','C5','C5','G4','G4','G4','E4','E4','E4','C4','C4','C4','G4','F4','E4','D4','C4'];
+  const seq = [...pass, ...pass, ...pass];
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+function demoSongAmazingGrace(){
+  const q = 0.45;
+  const pass = [['G4',1],['C5',2],['E5',1],['D5',1],['C5',2],['G4',1],['G4',2],['E5',1],['D5',2],['G4',1],['C5',2],['E5',1],['D5',1],['C5',1],['D5',1],['C5',1],['A4',1],['C5',3]];
+  const seq = [...pass, ...pass];
   return { events: seqToEvents(seq, q), tempo: 60/q };
 }
 
@@ -1686,12 +1783,27 @@ function getReverbBus(){
   return reverbBus;
 }
 
+let clarinetWave = null;
+function getClarinetWave(){
+  if (clarinetWave) return clarinetWave;
+  // Same overall taper as the sax wave, but even harmonics (2nd, 4th, 6th...) are strongly
+  // suppressed relative to odd ones (1st, 3rd, 5th...) — the real acoustic signature of a
+  // cylindrical, closed-at-the-reed bore. The 3rd and 5th are kept comparatively strong,
+  // since those specifically are what give clarinet its characteristic hollow/woody color.
+  const amps = [0, 1, 0.07, 0.55, 0.05, 0.34, 0.045, 0.19, 0.03, 0.11, 0.02, 0.065, 0.014, 0.035];
+  const real = new Float32Array(amps.length);
+  const imag = new Float32Array(amps.length);
+  amps.forEach((a,i)=>{ imag[i] = a; });
+  clarinetWave = audioCtx.createPeriodicWave(real, imag, { disableNormalization: false });
+  return clarinetWave;
+}
+
 function playSaxNote(when, dur, midi, opts){
   opts = opts || {};
   const freq = midiFreq(midi);
 
   const osc = audioCtx.createOscillator();
-  osc.setPeriodicWave(getSaxWave());
+  osc.setPeriodicWave(instrumentFamily === 'clarinet' ? getClarinetWave() : getSaxWave());
   osc.frequency.value = freq;
 
   // Keeps the tone warm rather than buzzy — cutoff rises gently with pitch instead of
@@ -1872,6 +1984,46 @@ function clearScheduledAudio(){
   scheduledOsc = [];
 }
 
+// ---------- Practice streak (browser localStorage, same on-device pattern as saved songs) ----------
+const STREAK_KEY = 'saxhighway:streak';
+function getLocalDateString(d){
+  d = d || new Date();
+  const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function loadStreakData(){
+  try {
+    const raw = localStorage.getItem(STREAK_KEY);
+    if (!raw) return { lastDate: null, current: 0, longest: 0, totalDays: 0 };
+    return JSON.parse(raw);
+  } catch(e) { return { lastDate: null, current: 0, longest: 0, totalDays: 0 }; }
+}
+function updateStreakDisplay(data){
+  data = data || loadStreakData();
+  const el = document.getElementById('streakBadge');
+  if (!el) return;
+  if (!data.current || data.current < 1) { el.style.display = 'none'; return; }
+  el.textContent = '🔥 ' + data.current + ' day' + (data.current === 1 ? '' : 's') + ' streak';
+  el.title = data.longest > data.current ? ('Best: ' + data.longest + ' days · ' + data.totalDays + ' total practice days') : (data.totalDays + ' total practice days');
+  el.style.display = '';
+}
+// Called whenever the user actually presses Play — that's the meaningful "practiced today"
+// signal, not just having the page open. Safe to call more than once per day: a same-day
+// call is a no-op past the first, so repeated play/pause during one session can't inflate it.
+function recordPracticeSession(){
+  if (!storageAvailable()) return;
+  const today = getLocalDateString();
+  const data = loadStreakData();
+  if (data.lastDate === today) { updateStreakDisplay(data); return; }
+  const yesterday = getLocalDateString(new Date(Date.now() - 86400000));
+  data.current = (data.lastDate === yesterday) ? (data.current||0) + 1 : 1;
+  data.longest = Math.max(data.longest||0, data.current);
+  data.totalDays = (data.totalDays||0) + 1;
+  data.lastDate = today;
+  try { localStorage.setItem(STREAK_KEY, JSON.stringify(data)); } catch(e) {}
+  updateStreakDisplay(data);
+}
+
 // ---------- Playback control ----------
 function startPlayback(){
   if (!events.length) return;
@@ -1883,6 +2035,7 @@ function startPlayback(){
   fsPlayBtn.textContent = '⏸';
   scheduleAudio(pausedAt);
   rafId = requestAnimationFrame(tick);
+  recordPracticeSession();
 }
 function stopPlayback(finished){
   playing = false;
@@ -2005,12 +2158,16 @@ function setInstrumentFamily(family){
   document.getElementById('clarinetKeyGuideBody').style.display = isClarinet ? '' : 'none';
   document.getElementById('instrumentRow').style.display = isClarinet ? 'none' : '';
   document.getElementById('featureSelectRow').style.display = isClarinet ? 'none' : '';
+  document.getElementById('clarinetFeatureSelectRow').style.display = isClarinet ? '' : 'none';
   document.getElementById('saxNavBtn').disabled = !isClarinet;
   document.getElementById('saxNavBtn').classList.toggle('drawer-item-active', !isClarinet);
   document.getElementById('clarinetNavBtn').disabled = isClarinet;
   document.getElementById('clarinetNavBtn').classList.toggle('drawer-item-active', isClarinet);
   document.querySelector('header h1').innerHTML = isClarinet ? 'Clarinet <em>Roll</em>' : 'Sax <em>Roll</em>';
   document.getElementById('infoNavBtn').textContent = 'Info — how to use ' + (isClarinet ? 'Clarinet' : 'Sax') + ' Roll';
+  document.getElementById('aboutFingeringsText').textContent = isClarinet
+    ? "Every fingering in this app for clarinet — all 33 notes, E3 through C6 — has been checked against the Woodwind Fingering Guide's note-by-note chalumeau data, with the clarion register (B4-C6) derived directly from that verified data using the confirmed twelfth relationship, not separately guessed. Throat tones (F#4-Bb4) are their own special case, matching how they actually work. This is newer and less battle-tested than the saxophone fingerings, which have been refined over a much longer period — if something looks off, that feedback is genuinely useful."
+    : "Every fingering in this app — all 33 notes, low Bb3 through high F#6 — has been checked against multiple independent, authoritative fingering references, with full agreement across sources. The one exception is written high F#6, which needs an optional key that not every alto has; that note is flagged when it comes up, and the fingering shown assumes your horn has it. Where a note has other valid alternate fingerings (which is common on saxophone), this app always shows the one standard choice, not every option.";
   updateBaseLaneLabels();
   loadEvents([], 0, '');
 }
@@ -2305,9 +2462,23 @@ const DEMO_FEATURES = {
   palmKeys: { fn: demoSongWide,  msg: 'Loaded demo: a wider-range phrase — watch the low and palm key rows appear.' },
   trill:    { fn: demoSongTrill, msg: 'Loaded demo: a held trill on F#4 — watch for the zigzag.' },
 };
+const LIBRARY_SONGS = {
+  hotCrossBuns:  { fn: demoSongHotCrossBuns,  msg: 'Loaded: Hot Cross Buns (traditional) — public domain.' },
+  maryLamb:      { fn: demoSongMaryLamb,      msg: 'Loaded: Mary Had a Little Lamb (traditional) — public domain.' },
+  frereJacques:  { fn: demoSongFrereJacques,  msg: 'Loaded: Frère Jacques (traditional French round) — public domain.' },
+  auClair:       { fn: demoSongAuClair,       msg: 'Loaded: Au Clair de la Lune (traditional French folk song) — public domain.' },
+  rowBoat:       { fn: demoSongRowBoat,       msg: 'Loaded: Row, Row, Row Your Boat (traditional) — public domain.' },
+  amazingGrace:  { fn: demoSongAmazingGrace,  msg: 'Loaded: Amazing Grace (traditional hymn) — public domain.' },
+};
 
 document.getElementById('demoSongSelect').addEventListener('change', (e)=>{
   const entry = DEMO_SONGS[e.target.value];
+  if (!entry) return;
+  const {events, tempo} = entry.fn();
+  loadEvents(events, tempo, entry.msg);
+});
+document.getElementById('librarySelect').addEventListener('change', (e)=>{
+  const entry = LIBRARY_SONGS[e.target.value];
   if (!entry) return;
   const {events, tempo} = entry.fn();
   loadEvents(events, tempo, entry.msg);
@@ -2317,6 +2488,11 @@ document.getElementById('featureSelect').addEventListener('change', (e)=>{
   if (!entry) return;
   const {events, tempo} = entry.fn();
   loadEvents(events, tempo, entry.msg);
+});
+document.getElementById('clarinetFeatureSelect').addEventListener('change', (e)=>{
+  if (e.target.value !== 'crossingBreak') return;
+  const {events, tempo} = demoSongClarinetBreak();
+  loadEvents(events, tempo, 'Loaded demo: crossing the break — G4 up through B4/C5 and back, the throat-tone-to-clarion transition.');
 });
 document.getElementById('scaleSelect').addEventListener('change', (e)=>{
   const root = e.target.value;
@@ -2533,6 +2709,7 @@ buildLegend([]);
 updateTempoDisplay();
 renderAt(0);
 renderSavedSongs();
+updateStreakDisplay();
 })();
 </script>
 
