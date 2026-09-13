@@ -347,6 +347,8 @@
   .difficulty-badge.diff-advanced{ background:rgba(232,99,122,.15); color:#E8637A; }
   .difficulty-badge.diff-expert{ background:rgba(184,71,71,.2); color:#D9605F; }
   .card p{color:var(--ink-dim); font-size:13px; line-height:1.6;}
+  .clarinet-key-list{ margin:0; padding-left:20px; color:var(--ink-dim); font-size:13px; line-height:1.9; }
+  .clarinet-key-list strong{ color:var(--ink); }
 
   .drawer-backdrop{
     position:fixed; inset:0; background:rgba(0,0,0,.55);
@@ -503,10 +505,10 @@
     <span class="drawer-title">Sax <em>Roll</em></span>
     <button id="drawerCloseBtn" type="button" aria-label="Close menu">✕</button>
   </div>
-  <div class="drawer-section-label">Current</div>
-  <button class="drawer-item drawer-item-active" type="button" disabled>Alto Sax Roll</button>
-  <div class="drawer-section-label">More rolls coming soon</div>
-  <button class="drawer-item" type="button" id="clarinetNavBtn">Clarinet Roll <span class="wip-tag">WIP</span></button>
+  <div class="drawer-section-label">Rolls</div>
+  <button class="drawer-item drawer-item-active" type="button" id="saxNavBtn" disabled>Alto Sax Roll</button>
+  <button class="drawer-item" type="button" id="clarinetNavBtn">Clarinet Roll <span class="wip-tag">Beta</span></button>
+  <div class="drawer-section-label">More</div>
   <button class="drawer-item" type="button" id="infoNavBtn">Info — how to use Sax Roll</button>
 </nav>
 
@@ -528,15 +530,15 @@
   </div>
 </div>
 
-<div id="clarinetModal" class="info-modal" role="dialog" aria-label="Clarinet Roll — work in progress">
+<div id="clarinetModal" class="info-modal" role="dialog" aria-label="Clarinet Roll — beta">
   <div class="info-modal-header">
-    <span class="drawer-title">Clarinet Roll <span class="wip-tag">WIP</span></span>
+    <span class="drawer-title">Clarinet Roll <span class="wip-tag">Beta</span></span>
     <button id="clarinetCloseBtn" type="button" aria-label="Close">✕</button>
   </div>
   <div class="info-modal-body">
-    <p><strong>Not ready to play yet</strong> — this is a placeholder while the clarinet version gets built. Clarinet fingering is a genuinely different system from saxophone (not a reskin): a register key that jumps a twelfth instead of an octave, a "break" between the low and middle registers with its own special fingerings, and different key names throughout.</p>
-    <p><strong>Already verified:</strong> the full fingering table for the practical range (E3 to C6, 33 notes) is worked out and cross-checked against multiple sources, along with the correct transposition for Bb clarinet.</p>
-    <p><strong>Still needed:</strong> a traced key diagram (the same photo-based process used for the sax diagram), and wiring the fingering data into the highway and audio engine. Check back soon.</p>
+    <p><strong>You're now in Clarinet Roll</strong> — Bb clarinet, chalumeau and clarion registers (E3 to C6, 33 notes), fingerings and transposition fully verified against multiple sources.</p>
+    <p><strong>What's different from sax:</strong> the top lane is the register key (labeled "Reg") rather than an octave key — clarinet jumps a twelfth, not an octave, when you press it. L1-L3 and R1-R3 are the same left/right-hand finger-hole idea as sax. Extra keys (pinky keys, throat-tone keys) appear below as needed, same as sax's aux rows.</p>
+    <p><strong>Known gap:</strong> there's no traced visual key diagram yet (that needs the same photo-based process used for the sax one) — the highway, fingering lookup, difficulty rating, and audio all work now, just without a picture of the instrument yet.</p>
   </div>
 </div>
 
@@ -545,7 +547,7 @@
 
   <details class="key-guide">
     <summary>Key guide — what L1, R3, etc. mean</summary>
-    <div class="key-guide-body">
+    <div class="key-guide-body" id="saxKeyGuideBody">
       <svg viewBox="-135 -15 560 850" class="sax-diagram" xmlns="http://www.w3.org/2000/svg">
   <path d="M34.4,0.0 C34.0,7.6 54.9,40.6 71.3,56.0 C87.7,71.5 118.9,76.6 132.9,92.5 C146.8,108.5 157.7,129.3 154.9,152.0 C152.2,174.7 124.0,201.8 116.3,228.8"
         fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
@@ -634,6 +636,16 @@
 </svg>
       <p class="kg-note">Purple = octave key, orange = left hand, blue = right hand, teal = left pinky, dark teal = right pinky, rose = side/front keys, light blue = bis Bb key, violet = palm keys. One horn, top to bottom — left hand plays the upper body, right hand continues further down the same instrument.</p>
     </div>
+    <div class="key-guide-body clarinet-key-guide" id="clarinetKeyGuideBody" style="display:none;">
+      <p class="kg-note" style="margin-top:0;">No traced diagram yet for clarinet — here's what each lane means until there is one.</p>
+      <ul class="clarinet-key-list">
+        <li><strong>Reg</strong> — register key (left thumb). Jumps a twelfth, not an octave.</li>
+        <li><strong>L1 / L2 / L3</strong> — left hand index / middle / ring finger, main tone holes.</li>
+        <li><strong>R1 / R2 / R3</strong> — right hand index / middle / ring finger, main tone holes.</li>
+        <li><strong>Low E/B, Low F/C, Low F#/C#, C#/G#, G#/D#</strong> — pinky-table keys (either hand, depending on the note).</li>
+        <li><strong>Side (Eb/Bb), Side G#, Top A</strong> — throat-register keys used for F#4 through Bb4, the "break" notes.</li>
+      </ul>
+    </div>
   </details>
 
   <div class="highway-shell" id="highwayShell">
@@ -695,7 +707,7 @@
           </select>
         </div>
         <p class="simplify-warning" id="simplifyWarning">Simplifying can change a few of the actual notes in the song (swapping a hard-to-finger note for an easier nearby one) — it's meant to make a piece approachable, not a note-perfect version of the real thing.</p>
-        <div class="row">
+        <div class="row" id="instrumentRow">
           Instrument
           <select id="instrumentSelect" style="background:#0E141A;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:5px 8px;font-family:inherit;font-size:13px;">
             <option value="alto" selected>Alto</option>
@@ -722,7 +734,7 @@
 
     <div class="card">
       <h2>Load a song</h2>
-      <p class="disclaimer" id="demoBanner" style="display:none;"><strong>You're in the free demo</strong> — try the classical pieces or practice scales below. <a href="/">Subscribe</a> to upload and play any song of your own.</p>
+      <p class="disclaimer" id="demoBanner" style="display:none;"><strong>You're in the free demo</strong> — try the classical pieces below. <a href="/">Subscribe</a> to upload and play any song of your own.</p>
       <p class="disclaimer" id="uploadDisclaimer"><strong>⚠ This only reads MusicXML files</strong> (.xml, .musicxml, or .mxl) — not PDFs, images, or scanned sheet music. A PDF's notes are pixels, not data, so there's nothing here to parse directly.</p>
       <details class="file-help" id="fileHelpDetails">
         <summary>Where do I get a MusicXML file?</summary>
@@ -774,7 +786,7 @@
           <option value="B3">B major</option>
         </select>
       </div>
-      <div class="demo-select-row">
+      <div class="demo-select-row" id="featureSelectRow">
         <label class="demo-select-label" for="featureSelect">Specific features</label>
         <select id="featureSelect" class="demo-select">
           <option value="" selected disabled>Choose a feature…</option>
@@ -886,15 +898,80 @@ const AUX_LABELS = Object.fromEntries(Object.entries(AUX_META).map(([k,v])=>[k, 
 // independent, authoritative fingering references with full agreement.
 const APPROX_NOTES = new Set(['F#6']);
 
+// ===== CLARINET (Bb) =====
+// Verified against the Woodwind Fingering Guide (chalumeau register, note-by-note) plus
+// independent cross-checks (Wikipedia's register-key article, an acoustics paper, and
+// several teaching sites) confirming the core mechanic: clarinet overblows at a TWELFTH
+// (19 semitones), not an octave like sax — so every clarion (B4-C6) fingering below is
+// literally "register key + the chalumeau fingering of the note a twelfth lower", not a
+// separately-verified pattern. Throat tones (F#4-Bb4) are their own special case, not part
+// of that pattern — confirmed as such from the same sources.
+const CLARINET_FINGERING = {
+  'E3': ['thumb','l1','l2','l3','lowE','r1','r2','r3'],
+  'F3': ['thumb','l1','l2','l3','r1','r2','r3','lowF'],
+  'F#3':['thumb','l1','l2','l3','lowFs','r1','r2','r3'],
+  'G3': ['thumb','l1','l2','l3','r1','r2','r3'],
+  'G#3':['thumb','l1','l2','l3','r1','r2','r3','gsDs'],
+  'A3': ['thumb','l1','l2','l3','r1','r2'],
+  'Bb3':['thumb','l1','l2','l3','r1'],
+  'B3': ['thumb','l1','l2','l3','r2'],
+  'C4': ['thumb','l1','l2','l3'],
+  'C#4':['thumb','l1','l2','l3','csGs'],
+  'D4': ['thumb','l1','l2'],
+  'Eb4':['thumb','l1','l2','side4'],
+  'E4': ['thumb','l1'],
+  'F4': ['thumb'],
+  'F#4':['l1'],
+  'G4': [],
+  'G#4':['sideGs'],
+  'A4': ['topA'],
+  'Bb4':['oct','topA'], // 'oct' lane repurposed as clarinet's register key
+};
+// Clarion register: register key + the chalumeau fingering of the note a twelfth (19
+// semitones) below — generated directly from the table above rather than re-typed, so it
+// can't drift out of sync with the verified chalumeau data.
+const CLARION_SOURCE = ['E3','F3','F#3','G3','G#3','A3','Bb3','B3','C4','C#4','D4','Eb4','E4','F4'];
+const CLARION_TARGET  = ['B4','C5','C#5','D5','Eb5','E5','F5','F#5','G5','G#5','A5','Bb5','B5','C6'];
+CLARION_TARGET.forEach((note, i) => {
+  CLARINET_FINGERING[note] = ['oct', ...CLARINET_FINGERING[CLARION_SOURCE[i]]];
+});
+
+const CLARINET_AUX_META = {
+  thumb: {label:'Thumb hole', group:'thumb', className:'oct'},
+  lowE:  {label:'Low E/B key',  group:'pinky', className:'low-l'},
+  lowF:  {label:'Low F/C key',  group:'pinky', className:'low-r'},
+  lowFs: {label:'Low F#/C# key',group:'pinky', className:'low-l'},
+  csGs:  {label:'C#/G# key',    group:'pinky', className:'low-l'},
+  gsDs:  {label:'G#/D# key',    group:'pinky', className:'low-r'},
+  side4: {label:'Side (Eb/Bb) key', group:'throat', className:'side'},
+  sideGs:{label:'Side G# key',  group:'throat', className:'side'},
+  topA:  {label:'Top A key',    group:'throat', className:'side'},
+};
+const CLARINET_LANE_LABEL = {oct:'Reg', l1:'L1', l2:'L2', l3:'L3', r1:'R1', r2:'R2', r3:'R3'};
+
+let instrumentFamily = 'sax'; // 'sax' | 'clarinet'
+function activeFingering(){ return instrumentFamily === 'clarinet' ? CLARINET_FINGERING : FINGERING; }
+function activeAuxMeta(){ return instrumentFamily === 'clarinet' ? CLARINET_AUX_META : AUX_META; }
+function activeLaneLabel(){ return instrumentFamily === 'clarinet' ? CLARINET_LANE_LABEL : BASE_LANE_LABEL; }
+function updateBaseLaneLabels(){
+  const labels = activeLaneLabel();
+  document.querySelectorAll('#lanes > .lane').forEach((laneEl, i) => {
+    const key = BASE_LANES[i];
+    const labelEl = laneEl.querySelector('.lane-label');
+    if (labelEl && labels[key]) labelEl.textContent = labels[key];
+  });
+}
+
 function getFingering(key){
-  if (FINGERING[key]) return { keys: FINGERING[key], adjusted: false, resolvedKey: key };
+  const table = activeFingering();
+  if (table[key]) return { keys: table[key], adjusted: false, resolvedKey: key };
   const m = key.match(/^([A-G]#?)(-?\d+)$/);
   if (!m) return { keys: [], adjusted: false, resolvedKey: key, missing: true };
   const pc = m[1], octave = parseInt(m[2],10);
   for (let d=1; d<=3; d++){
     for (const dir of [1,-1]){
       const tryKey = pc + (octave + d*dir);
-      if (FINGERING[tryKey]) return { keys: FINGERING[tryKey], adjusted: true, resolvedKey: tryKey };
+      if (table[tryKey]) return { keys: table[tryKey], adjusted: true, resolvedKey: tryKey };
     }
   }
   return { keys: [], adjusted: false, resolvedKey: key, missing: true };
@@ -1064,7 +1141,12 @@ function generateMajorScale(rootKey){
 }
 function demoSongScale(rootKey){
   const q = 0.4;
-  const seq = generateMajorScale(rootKey);
+  const onePass = generateMajorScale(rootKey);
+  const passDuration = onePass.length * q;
+  const minDuration = 60;
+  const repeats = Math.max(1, Math.ceil(minDuration / passDuration));
+  let seq = [];
+  for (let i = 0; i < repeats; i++) seq = seq.concat(onePass);
   return { events: seqToEvents(seq, q), tempo: 60/q };
 }
 
@@ -1235,7 +1317,9 @@ const instrumentSelect = document.getElementById('instrumentSelect');
 // sax family, so this is the ONLY thing that differs per instrument (confirmed against
 // multiple sources: alto -9, soprano -2, tenor -14 (octave+M2), baritone -21 (octave+M6)).
 const INSTRUMENT_TRANSPOSE = { alto: 9, soprano: 2, tenor: 14, baritone: 21 };
+const CLARINET_TRANSPOSE = 2; // Bb clarinet sounds a major second below written pitch
 function currentTranspose(){
+  if (instrumentFamily === 'clarinet') return CLARINET_TRANSPOSE;
   return INSTRUMENT_TRANSPOSE[instrumentSelect.value] ?? 9;
 }
 const legendEl = document.getElementById('legend');
@@ -1257,15 +1341,16 @@ function fmtTime(s){
 }
 
 function usedAuxKeys(){
+  const auxMeta = activeAuxMeta();
   const set = new Set();
   events.forEach(ev=>{
-    getFingering(ev.key).keys.forEach(k=>{ if (AUX_META[k]) set.add(k); });
+    getFingering(ev.key).keys.forEach(k=>{ if (auxMeta[k]) set.add(k); });
     if (ev.trill) {
-      getTrillInfo(ev.key, ev.trillTarget).targetFingering.forEach(k=>{ if (AUX_META[k]) set.add(k); });
+      getTrillInfo(ev.key, ev.trillTarget).targetFingering.forEach(k=>{ if (auxMeta[k]) set.add(k); });
     }
   });
   // stable order: grouped, then alphabetical within group
-  return Object.keys(AUX_META).filter(k=>set.has(k));
+  return Object.keys(auxMeta).filter(k=>set.has(k));
 }
 
 function buildLanes(){
@@ -1275,10 +1360,11 @@ function buildLanes(){
   BASE_LANES.forEach(l=> elLanes[l] = document.getElementById('track-'+l));
   elLanes['__open'] = document.getElementById('track-open');
 
+  const auxMeta = activeAuxMeta();
   const aux = usedAuxKeys();
   let lastGroup = null;
   aux.forEach(key=>{
-    const meta = AUX_META[key];
+    const meta = auxMeta[key];
     if (meta.group !== lastGroup) {
       const divider = document.createElement('div');
       divider.className = 'lane-divider aux-lane-el';
@@ -1297,7 +1383,20 @@ function buildLanes(){
 }
 
 function buildLegend(aux){
-  const groupsPresent = new Set(aux.map(k=>AUX_META[k].group));
+  const auxMeta = activeAuxMeta();
+  const groupsPresent = new Set(aux.map(k=>auxMeta[k].group));
+  if (instrumentFamily === 'clarinet') {
+    const items = [
+      {dot:'var(--oct)', label:'register key / thumb hole', always:true},
+      {dot:'var(--lh)', label:'left hand', always:true},
+      {dot:'var(--rh)', label:'right hand', always:true},
+      {dot:'var(--low)', label:'pinky keys', show: groupsPresent.has('pinky')},
+      {dot:'var(--side)', label:'throat / side keys', show: groupsPresent.has('throat')},
+    ];
+    legendEl.innerHTML = items.filter(i=>i.always||i.show)
+      .map(i=>`<span><span class="dot" style="background:${i.dot}"></span>${i.label}</span>`).join('');
+    return;
+  }
   const hasLeftPinky = ['lowBb','lowB','lowCs','keyGs'].some(k=>aux.includes(k));
   const hasRightPinky = ['lowC','lowEb'].some(k=>aux.includes(k));
   const items = [
@@ -1376,7 +1475,7 @@ function buildBars(){
       allKeys.forEach(k=>{
         const track = elLanes[k];
         if (!track) return;
-        const cls = BASE_LANE_CLASS[k] || (AUX_META[k] && AUX_META[k].className) || 'lh';
+        const cls = BASE_LANE_CLASS[k] || (activeAuxMeta()[k] && activeAuxMeta()[k].className) || 'lh';
         const left = ev.start*pxPerSec;
         const width = Math.max(ev.dur*pxPerSec - 3, 4);
         if (trillInfo.toggleKeys.has(k)) {
@@ -1410,7 +1509,7 @@ function buildBars(){
     fingering.forEach(k=>{
       const track = elLanes[k];
       if (!track) return;
-      const cls = BASE_LANE_CLASS[k] || (AUX_META[k] && AUX_META[k].className) || 'lh';
+      const cls = BASE_LANE_CLASS[k] || (activeAuxMeta()[k] && activeAuxMeta()[k].className) || 'lh';
       const bar = document.createElement('div');
       bar.className = 'bar ' + cls;
       bar.style.left = (ev.start*pxPerSec) + 'px';
@@ -1898,12 +1997,30 @@ const clarinetModal = document.getElementById('clarinetModal');
 function openClarinet(){ clarinetModal.classList.add('open'); infoBackdrop.classList.add('open'); }
 function closeClarinet(){ clarinetModal.classList.remove('open'); infoBackdrop.classList.remove('open'); }
 
+function setInstrumentFamily(family){
+  instrumentFamily = family;
+  const isClarinet = family === 'clarinet';
+  document.getElementById('saxKeyGuideBody').style.display = isClarinet ? 'none' : '';
+  document.getElementById('clarinetKeyGuideBody').style.display = isClarinet ? '' : 'none';
+  document.getElementById('instrumentRow').style.display = isClarinet ? 'none' : '';
+  document.getElementById('featureSelectRow').style.display = isClarinet ? 'none' : '';
+  document.getElementById('saxNavBtn').disabled = !isClarinet;
+  document.getElementById('saxNavBtn').classList.toggle('drawer-item-active', !isClarinet);
+  document.getElementById('clarinetNavBtn').disabled = isClarinet;
+  document.getElementById('clarinetNavBtn').classList.toggle('drawer-item-active', isClarinet);
+  document.querySelector('header h1').innerHTML = isClarinet ? 'Clarinet <em>Roll</em>' : 'Sax <em>Roll</em>';
+  document.getElementById('infoNavBtn').textContent = 'Info — how to use ' + (isClarinet ? 'Clarinet' : 'Sax') + ' Roll';
+  updateBaseLaneLabels();
+  loadEvents([], 0, '');
+}
+
 document.getElementById('menuBtn').addEventListener('click', openDrawer);
 document.getElementById('drawerCloseBtn').addEventListener('click', closeDrawer);
 drawerBackdrop.addEventListener('click', closeDrawer);
 document.getElementById('infoNavBtn').addEventListener('click', ()=>{ closeDrawer(); openInfo(); });
 document.getElementById('infoCloseBtn').addEventListener('click', closeInfo);
-document.getElementById('clarinetNavBtn').addEventListener('click', ()=>{ closeDrawer(); openClarinet(); });
+document.getElementById('clarinetNavBtn').addEventListener('click', ()=>{ closeDrawer(); setInstrumentFamily('clarinet'); openClarinet(); });
+document.getElementById('saxNavBtn').addEventListener('click', ()=>{ closeDrawer(); setInstrumentFamily('sax'); });
 document.getElementById('clarinetCloseBtn').addEventListener('click', closeClarinet);
 infoBackdrop.addEventListener('click', ()=>{ closeInfo(); closeClarinet(); });
 
@@ -2011,10 +2128,12 @@ function computeDifficulty(evs, duration){
 // independent pinky/palm control is a skill beginners haven't built yet, regardless of
 // how many total keys a fingering uses.
 const HARD_MECHANISMS = ['lowBb','lowB','lowC','lowCs','lowEb','keyGs','sideBb','sideE','highFs','palmD','palmEb','palmF','frontF'];
+const CLARINET_HARD_MECHANISMS = ['lowE','lowF','lowFs','csGs','gsDs','side4','sideGs','topA'];
 function fingeringComplexity(key){
-  const fingering = FINGERING[key];
+  const fingering = activeFingering()[key];
   if (!fingering) return 99; // unknown/out of range — treat as maximally hard
-  const hardCount = fingering.filter(k => HARD_MECHANISMS.includes(k)).length;
+  const hardList = instrumentFamily === 'clarinet' ? CLARINET_HARD_MECHANISMS : HARD_MECHANISMS;
+  const hardCount = fingering.filter(k => hardList.includes(k)).length;
   return fingering.length + hardCount * 1.5;
 }
 
@@ -2022,7 +2141,14 @@ function fingeringComplexity(key){
 // only used to find neighboring semitones that are themselves guaranteed to have a real,
 // valid fingering (never invents a note outside the known range).
 let MIDI_TO_KEY = null;
+let MIDI_TO_KEY_CLARINET = null;
 function getMidiToKey(){
+  if (instrumentFamily === 'clarinet') {
+    if (MIDI_TO_KEY_CLARINET) return MIDI_TO_KEY_CLARINET;
+    MIDI_TO_KEY_CLARINET = {};
+    for (const key of Object.keys(CLARINET_FINGERING)) MIDI_TO_KEY_CLARINET[keyToMidi(key)] = key;
+    return MIDI_TO_KEY_CLARINET;
+  }
   if (MIDI_TO_KEY) return MIDI_TO_KEY;
   MIDI_TO_KEY = {};
   for (const key of Object.keys(FINGERING)) MIDI_TO_KEY[keyToMidi(key)] = key;
@@ -2136,7 +2262,7 @@ function rebuildEventsFromOriginal(){
 // a few times, and means "Normal" always gets back to exactly the original song.
 function shiftWouldExceedRange(shift){
   if (!shift) return false;
-  return originalEvents.some(ev => !FINGERING[transposeKeyOctave(ev.key, shift)]);
+  return originalEvents.some(ev => !activeFingering()[transposeKeyOctave(ev.key, shift)]);
 }
 function applyOctaveShift(newShift){
   const msg = document.getElementById('octaveShiftMsg');
