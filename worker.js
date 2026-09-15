@@ -401,6 +401,8 @@ function landingPage() {
   button:hover{ filter:brightness(1.08); }
   button:active{ transform:scale(.99); }
   button.secondary{ background:transparent; border:1px solid var(--line); color:var(--ink); font-weight:500; }
+  button.demo-cta{ border-color:var(--brass); color:var(--brass); font-weight:600; }
+  button.demo-cta:hover{ background:rgba(217,162,75,.08); }
   button.tertiary{
     width:100%; background:transparent; border:none; color:var(--ink-dim);
     font-family:inherit; font-size:13.5px; cursor:pointer; text-decoration:underline;
@@ -430,7 +432,7 @@ function landingPage() {
     <li>Shows trills and extended-range fingerings, not just the basics</li>
   </ul>
   <button id="subscribeBtn">Subscribe — <span class="price">$1.99/week</span></button>
-  <button class="tertiary" id="demoLink" type="button">Try it free first — no account needed</button>
+  <button class="secondary demo-cta" id="demoLink" type="button">Try it free — no account, no card, right now</button>
   <div class="divider">— already subscribed? —</div>
   <input id="emailInput" type="email" placeholder="you@example.com">
   <button class="secondary" id="loginBtn">Access my account</button>
