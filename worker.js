@@ -386,7 +386,16 @@ function landingPage() {
       radial-gradient(1px 1px at 40% 75%, rgba(255,255,255,.25) 0, transparent 60%),
       radial-gradient(1px 1px at 88% 60%, rgba(255,255,255,.18) 0, transparent 60%);
   }
-  .box{max-width:440px; width:100%; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:36px 32px;}
+  .page-wrap{ max-width:440px; width:100%; display:flex; flex-direction:column; gap:16px; }
+  .box{width:100%; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:36px 32px; box-sizing:border-box;}
+  .clarinet-box{ padding:24px 28px; }
+  .clarinet-box h2{ font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:19px; margin:0 0 8px; color:var(--ink); }
+  .beta-tag{
+    display:inline-block; font-size:10px; font-weight:700; letter-spacing:.04em;
+    color:var(--brass); border:1px solid var(--brass); border-radius:4px;
+    padding:1px 6px; vertical-align:middle; margin-left:4px;
+  }
+  .clarinet-box p{ margin-bottom:16px; }
   h1{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:34px; margin:0 0 8px; letter-spacing:-.01em;}
   h1 em{color:var(--brass); font-style:italic;}
   .tagline{color:var(--ink); font-size:16px; margin:0 0 16px; font-weight:500; line-height:1.4;}
@@ -422,6 +431,7 @@ function landingPage() {
 </style>
 </head>
 <body>
+<div class="page-wrap">
 <div class="box">
   <h1>Sax <em>Roll</em></h1>
   <p class="tagline">Learn songs on alto sax without reading sheet music.</p>
@@ -438,6 +448,12 @@ function landingPage() {
   <button class="secondary" id="loginBtn">Access my account</button>
   <div class="msg" id="msg"></div>
 </div>
+<div class="box clarinet-box">
+  <h2>Play clarinet? <span class="beta-tag">Beta</span></h2>
+  <p>Clarinet Roll is the same idea, built for Bb clarinet — chalumeau and clarion registers, verified fingerings and transposition. Try it free, no account needed.</p>
+  <button class="secondary demo-cta" id="clarinetDemoLink" type="button">Try Clarinet Roll free — no account, no card</button>
+</div>
+</div>
 <script>
   const msg = document.getElementById('msg');
   const params = new URLSearchParams(window.location.search);
@@ -446,6 +462,9 @@ function landingPage() {
 
   document.getElementById('demoLink').addEventListener('click', () => {
     window.location.href = '/demo';
+  });
+  document.getElementById('clarinetDemoLink').addEventListener('click', () => {
+    window.location.href = '/demo?instrument=clarinet';
   });
 
   document.getElementById('subscribeBtn').addEventListener('click', async () => {
