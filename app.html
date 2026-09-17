@@ -440,6 +440,43 @@
     text-transform:uppercase; letter-spacing:.04em;
   }
   .tuner-status{ font-size:12.5px; color:var(--ink-dim); text-align:center; margin:10px 0 0; min-height:16px; }
+  .kg-dot.kg-highlight{
+    stroke:#fff !important; stroke-width:3 !important;
+    filter:drop-shadow(0 0 6px rgba(255,255,255,.7));
+  }
+  .trainer-diagram-wrap{ max-height:340px; overflow-y:auto; margin-bottom:12px; }
+  .note-select-row{ display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  .note-select-row select{
+    flex:1 1 auto; background:#0E141A; border:1px solid var(--line);
+    border-radius:6px; color:var(--ink); padding:8px 10px; font-family:inherit; font-size:14px;
+  }
+  .trainer-target-label{
+    text-align:center; font-size:12.5px; color:var(--ink-dim); margin-bottom:10px;
+  }
+  .trainer-verdict{
+    text-align:center; font-size:14px; font-weight:600; min-height:20px; margin-top:8px;
+  }
+  .trainer-verdict.in-tune{ color:#6FCF97; }
+  .trainer-verdict.sharp{ color:#E8637A; }
+  .trainer-verdict.flat{ color:#7FA8C9; }
+  .tuner-fingering{
+    background:#0E141A; border:1px solid var(--line); border-radius:10px;
+    padding:12px 16px; margin-bottom:16px; font-size:13px; color:var(--ink-dim); line-height:1.5;
+  }
+  .tuner-fingering strong{ color:var(--brass); }
+  .tuner-fingering-label{ color:var(--ink-dim); margin-right:4px; }
+  .tuner-chip{
+    display:inline-block; font-size:11.5px; font-weight:700; color:#0B0F14;
+    padding:3px 9px; border-radius:10px; margin:2px 3px 2px 0;
+  }
+  .tuner-chip-oct{ background:var(--oct); color:#fff; }
+  .tuner-chip-lh{ background:var(--lh); }
+  .tuner-chip-rh{ background:var(--rh); color:#fff; }
+  .tuner-chip-low-l{ background:var(--low); }
+  .tuner-chip-low-r{ background:var(--low-r); color:#fff; }
+  .tuner-chip-side{ background:var(--side); }
+  .tuner-chip-palm{ background:var(--palm); }
+  .tuner-chip-open{ background:transparent; border:1px dashed var(--ink-dim); color:var(--ink-dim); }
   .learning-guide-list{
     color:var(--ink-dim); font-size:13.5px; line-height:1.65; margin:0 0 14px;
     padding-left:20px;
@@ -549,7 +586,7 @@
   </div>
   <div class="drawer-section-label">Rolls</div>
   <button class="drawer-item drawer-item-active" type="button" id="saxNavBtn" disabled>Alto Sax Roll</button>
-  <button class="drawer-item" type="button" id="clarinetNavBtn">Clarinet Roll <span class="wip-tag">Beta</span></button>
+  <button class="drawer-item" type="button" id="clarinetNavBtn">Clarinet Roll</button>
   <div class="drawer-section-label">Tools</div>
   <button class="drawer-item" type="button" id="tunerNavBtn">Tuner <span class="wip-tag">Prototype</span></button>
   <div class="drawer-section-label">More</div>
@@ -583,15 +620,15 @@
   </div>
 </div>
 
-<div id="clarinetModal" class="info-modal" role="dialog" aria-label="Clarinet Roll — beta">
+<div id="clarinetModal" class="info-modal" role="dialog" aria-label="Clarinet Roll">
   <div class="info-modal-header">
-    <span class="drawer-title">Clarinet Roll <span class="wip-tag">Beta</span></span>
+    <span class="drawer-title">Clarinet Roll</span>
     <button id="clarinetCloseBtn" type="button" aria-label="Close">✕</button>
   </div>
   <div class="info-modal-body">
-    <p><strong>You're now in Clarinet Roll</strong> — Bb clarinet, chalumeau and clarion registers (E3 to C6, 33 notes), fingerings and transposition fully verified against multiple sources.</p>
+    <p><strong>You're now in Clarinet Roll</strong> — Bb clarinet, chalumeau and clarion registers (E3 to C6, 33 notes), fingerings and transposition verified against multiple independent sources.</p>
     <p><strong>What's different from sax:</strong> the top lane is the register key (labeled "Reg") rather than an octave key — clarinet jumps a twelfth, not an octave, when you press it. L1-L3 and R1-R3 are the same left/right-hand finger-hole idea as sax. Extra keys (pinky keys, throat-tone keys) appear below as needed, same as sax's aux rows.</p>
-    <p><strong>Known gap:</strong> the key guide diagram is a clean schematic, not photo-traced from a real clarinet the way the sax one was — the shape and key positions are accurate, but it doesn't have that same "traced from an actual photo" precision yet. Everything else — fingerings, transposition, difficulty rating, audio — is fully verified.</p>
+    <p><strong>One honest note:</strong> the key guide diagram is a clean schematic rather than traced from an actual photo the way the sax one was — the shape and key positions are accurate, it just doesn't carry that same photo-traced precision. Everything else — fingerings, transposition, difficulty rating, audio, the tuner — is fully verified.</p>
   </div>
 </div>
 
@@ -602,7 +639,15 @@
     <button id="tunerCloseBtn" type="button" aria-label="Close">✕</button>
   </div>
   <div class="info-modal-body">
-    <p>Early prototype — play one sustained note at a time and see how close you are to in tune. Works the same for both <strong>Alto Sax Roll and Clarinet Roll</strong> — pitch detection just listens to the sound, it doesn't care which instrument made it. This listens for <strong>pitch/tuning</strong> only, not tone quality or timbre — that's a much harder problem and not something this prototype attempts. Detection runs entirely on your device; nothing is recorded or sent anywhere.</p>
+    <p>Pick the note you want to practice, see its fingering, then play it and check how close you land — measured against <strong>that specific note</strong>, not just whatever pitch you're closest to. Works the same for both <strong>Alto Sax Roll and Clarinet Roll</strong>. This checks <strong>pitch/tuning</strong> only, not tone quality — a much harder, more subjective problem this doesn't attempt. Detection runs entirely on your device; nothing is recorded or sent anywhere.</p>
+    <div class="demo-select-row">
+      <label class="demo-select-label" for="tunerNoteSelect">Note to practice</label>
+      <select id="tunerNoteSelect" class="demo-select">
+        <option value="" selected disabled>Choose a note…</option>
+      </select>
+    </div>
+    <div class="trainer-diagram-wrap" id="tunerDiagramWrap" style="display:none;"></div>
+    <div class="tuner-fingering" id="tunerFingering" style="display:none;"></div>
     <div class="tuner-display" id="tunerDisplay">
       <div class="tuner-note" id="tunerNote">—</div>
       <div class="tuner-freq" id="tunerFreq">&nbsp;</div>
@@ -612,8 +657,8 @@
       </div>
       <div class="tuner-labels"><span>flat</span><span>in tune</span><span>sharp</span></div>
     </div>
-    <button id="tunerStartBtn" type="button" class="secondary">🎤 Start listening</button>
-    <p class="tuner-status" id="tunerStatus"></p>
+    <button id="tunerStartBtn" type="button" class="secondary" disabled>🎤 Start listening</button>
+    <p class="tuner-status" id="tunerStatus">Choose a note above to begin.</p>
   </div>
 </div>
 
@@ -631,81 +676,81 @@
   <path d="M217.6,192.5 C219,175 210,145 200.4,126.1" fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
   <path d="M116.3,228.8 L217.6,192.5 L235,650 L134,690 Z" fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linejoin="round"/>
 
-  <path d="M60,60 L76,68 L60,76 Z" class="kg-dot oct"/>
+  <path d="M60,60 L76,68 L60,76 Z" class="kg-dot oct" data-key="oct"/>
   <text x="8" y="71" class="callout" text-anchor="end">Octave</text>
   <line x1="14" y1="68" x2="53" y2="68" class="kg-line"/>
 
-  <circle cx="88" cy="128" r="7" class="kg-dot palm"/>
+  <circle cx="88" cy="128" r="7" class="kg-dot palm" data-key="palmEb"/>
   <text x="8" y="110" class="callout" text-anchor="end">Palm Eb</text>
   <line x1="14" y1="110" x2="81" y2="125" class="kg-line"/>
 
-  <circle cx="68" cy="142" r="7" class="kg-dot palm"/>
+  <circle cx="68" cy="142" r="7" class="kg-dot palm" data-key="palmD"/>
   <text x="8" y="142" class="callout" text-anchor="end">Palm D</text>
   <line x1="14" y1="142" x2="61" y2="142" class="kg-line"/>
 
-  <circle cx="88" cy="156" r="7" class="kg-dot palm"/>
+  <circle cx="88" cy="156" r="7" class="kg-dot palm" data-key="palmF"/>
   <text x="8" y="174" class="callout" text-anchor="end">Palm F</text>
   <line x1="14" y1="174" x2="81" y2="159" class="kg-line"/>
 
-  <circle cx="66" cy="200" r="8" class="kg-dot side"/>
+  <circle cx="66" cy="200" r="8" class="kg-dot side" data-key="frontF"/>
   <text x="8" y="203" class="callout" text-anchor="end">Front F</text>
   <line x1="14" y1="200" x2="58" y2="200" class="kg-line"/>
 
-  <circle cx="150" cy="270" r="20" class="kg-dot lh"/><text x="150" y="275" class="label-in">L1</text>
+  <circle cx="150" cy="270" r="20" class="kg-dot lh" data-key="l1"/><text x="150" y="275" class="label-in">L1</text>
   <text x="150" y="298" class="finger-label">index</text>
 
   <circle cx="175" cy="300" r="6" class="kg-dot low-l"/>
   <text x="330" y="275" class="callout" text-anchor="start">Bis Bb</text>
   <line x1="181" y1="300" x2="323" y2="277" class="kg-line"/>
 
-  <circle cx="158" cy="335" r="20" class="kg-dot lh"/><text x="158" y="340" class="label-in">L2</text>
+  <circle cx="158" cy="335" r="20" class="kg-dot lh" data-key="l2"/><text x="158" y="340" class="label-in">L2</text>
   <text x="158" y="363" class="finger-label">middle</text>
 
-  <circle cx="166" cy="400" r="20" class="kg-dot lh"/><text x="166" y="405" class="label-in">L3</text>
+  <circle cx="166" cy="400" r="20" class="kg-dot lh" data-key="l3"/><text x="166" y="405" class="label-in">L3</text>
   <text x="166" y="428" class="finger-label">ring</text>
 
-  <circle cx="58" cy="365" r="8" class="kg-dot low-l"/>
+  <circle cx="58" cy="365" r="8" class="kg-dot low-l" data-key="keyGs"/>
   <text x="8" y="352" class="callout" text-anchor="end">G#</text>
   <line x1="14" y1="352" x2="52" y2="362" class="kg-line"/>
 
-  <path d="M58,387 L44,386 A6,6 0 1,0 44,398 L58,397 Z" class="kg-dot low-l"/>
+  <path d="M58,387 L44,386 A6,6 0 1,0 44,398 L58,397 Z" class="kg-dot low-l" data-key="lowCs"/>
   <text x="8" y="388" class="callout" text-anchor="end">C#</text>
   <line x1="14" y1="388" x2="42" y2="392" class="kg-line"/>
 
-  <path d="M86,387 L72,386 A6,6 0 1,0 72,398 L86,397 Z" class="kg-dot low-l"/>
+  <path d="M86,387 L72,386 A6,6 0 1,0 72,398 L86,397 Z" class="kg-dot low-l" data-key="lowB"/>
   <text x="8" y="412" class="callout" text-anchor="end">B</text>
   <line x1="14" y1="412" x2="70" y2="394" class="kg-line"/>
 
-  <path d="M74,414 L44,413 A7,7 0 1,0 44,427 L74,426 Z" class="kg-dot low-l"/>
+  <path d="M74,414 L44,413 A7,7 0 1,0 44,427 L74,426 Z" class="kg-dot low-l" data-key="lowBb"/>
   <text x="8" y="460" class="callout" text-anchor="end">Bb (pinky)</text>
   <line x1="14" y1="460" x2="42" y2="422" class="kg-line"/>
 
-  <circle cx="174" cy="465" r="20" class="kg-dot rh"/><text x="174" y="470" class="label-in">R1</text>
+  <circle cx="174" cy="465" r="20" class="kg-dot rh" data-key="r1"/><text x="174" y="470" class="label-in">R1</text>
   <text x="174" y="493" class="finger-label">index</text>
 
-  <circle cx="252" cy="470" r="7" class="kg-dot side"/>
+  <circle cx="252" cy="470" r="7" class="kg-dot side" data-key="sideBb"/>
   <text x="335" y="455" class="callout" text-anchor="start">Side Bb</text>
   <line x1="259" y1="470" x2="328" y2="457" class="kg-line"/>
 
-  <circle cx="270" cy="495" r="7" class="kg-dot side"/>
+  <circle cx="270" cy="495" r="7" class="kg-dot side" data-key="highFs"/>
   <text x="335" y="500" class="callout" text-anchor="start">Side C</text>
   <line x1="277" y1="495" x2="328" y2="500" class="kg-line"/>
 
-  <circle cx="272" cy="525" r="7" class="kg-dot side"/>
+  <circle cx="272" cy="525" r="7" class="kg-dot side" data-key="sideE"/>
   <text x="335" y="546" class="callout" text-anchor="start">Side E</text>
   <line x1="279" y1="525" x2="328" y2="544" class="kg-line"/>
 
-  <circle cx="182" cy="530" r="20" class="kg-dot rh"/><text x="182" y="535" class="label-in">R2</text>
+  <circle cx="182" cy="530" r="20" class="kg-dot rh" data-key="r2"/><text x="182" y="535" class="label-in">R2</text>
   <text x="182" y="558" class="finger-label">middle</text>
 
-  <circle cx="190" cy="595" r="20" class="kg-dot rh"/><text x="190" y="600" class="label-in">R3</text>
+  <circle cx="190" cy="595" r="20" class="kg-dot rh" data-key="r3"/><text x="190" y="600" class="label-in">R3</text>
   <text x="190" y="623" class="finger-label">ring</text>
 
-  <path d="M214,599.5 L228,598.5 A6,6 0 1,1 228,610.5 L214,609.5 Z" class="kg-dot low-r"/>
+  <path d="M214,599.5 L228,598.5 A6,6 0 1,1 228,610.5 L214,609.5 Z" class="kg-dot low-r" data-key="lowEb"/>
   <text x="335" y="583" class="callout" text-anchor="start">Eb (pinky)</text>
   <line x1="328" y1="583" x2="230" y2="604" class="kg-line"/>
 
-  <path d="M226,612 L240,611 A6,6 0 1,1 240,623 L226,622 Z" class="kg-dot low-r"/>
+  <path d="M226,612 L240,611 A6,6 0 1,1 240,623 L226,622 Z" class="kg-dot low-r" data-key="lowC"/>
   <text x="335" y="628" class="callout" text-anchor="start">C (pinky)</text>
   <line x1="328" y1="628" x2="242" y2="617" class="kg-line"/>
 </svg>
@@ -720,57 +765,57 @@
         <path d="M118,540 C114,570 108,592 96,612 C86,629 100,648 140,648 C180,648 194,629 184,612 C172,592 166,570 162,540 Z"
               fill="none" stroke="#D9A24B" stroke-width="3" stroke-linejoin="round"/>
 
-        <path d="M108,72 L124,80 L108,88 Z" class="kg-dot oct"/>
+        <path d="M108,72 L124,80 L108,88 Z" class="kg-dot oct" data-key="oct"/>
         <text x="280" y="70" class="callout" text-anchor="start">Register key</text>
         <line x1="273" y1="70" x2="130" y2="78" class="kg-line"/>
 
-        <circle cx="172" cy="78" r="7" class="kg-dot oct"/>
+        <circle cx="172" cy="78" r="7" class="kg-dot oct" data-key="thumb"/>
         <text x="280" y="98" class="callout" text-anchor="start">Thumb hole</text>
         <line x1="273" y1="98" x2="178" y2="81" class="kg-line"/>
 
-        <circle cx="108" cy="115" r="7" class="kg-dot side"/>
+        <circle cx="108" cy="115" r="7" class="kg-dot side" data-key="topA"/>
         <text x="8" y="115" class="callout" text-anchor="end">Top A (throat)</text>
         <line x1="14" y1="115" x2="100" y2="115" class="kg-line"/>
 
-        <circle cx="172" cy="140" r="7" class="kg-dot side"/>
+        <circle cx="172" cy="140" r="7" class="kg-dot side" data-key="sideGs"/>
         <text x="280" y="140" class="callout" text-anchor="start">Side G# (throat)</text>
         <line x1="273" y1="140" x2="180" y2="140" class="kg-line"/>
 
-        <circle cx="108" cy="165" r="7" class="kg-dot side"/>
+        <circle cx="108" cy="165" r="7" class="kg-dot side" data-key="side4"/>
         <text x="8" y="165" class="callout" text-anchor="end">Side Eb/Bb (throat)</text>
         <line x1="14" y1="165" x2="100" y2="165" class="kg-line"/>
 
-        <circle cx="140" cy="215" r="20" class="kg-dot lh"/><text x="140" y="220" class="label-in">L1</text>
+        <circle cx="140" cy="215" r="20" class="kg-dot lh" data-key="l1"/><text x="140" y="220" class="label-in">L1</text>
         <text x="140" y="243" class="finger-label">index</text>
-        <circle cx="140" cy="275" r="20" class="kg-dot lh"/><text x="140" y="280" class="label-in">L2</text>
+        <circle cx="140" cy="275" r="20" class="kg-dot lh" data-key="l2"/><text x="140" y="280" class="label-in">L2</text>
         <text x="140" y="303" class="finger-label">middle</text>
-        <circle cx="140" cy="335" r="20" class="kg-dot lh"/><text x="140" y="340" class="label-in">L3</text>
+        <circle cx="140" cy="335" r="20" class="kg-dot lh" data-key="l3"/><text x="140" y="340" class="label-in">L3</text>
         <text x="140" y="363" class="finger-label">ring</text>
 
-        <circle cx="140" cy="400" r="20" class="kg-dot rh"/><text x="140" y="405" class="label-in">R1</text>
+        <circle cx="140" cy="400" r="20" class="kg-dot rh" data-key="r1"/><text x="140" y="405" class="label-in">R1</text>
         <text x="140" y="428" class="finger-label">index</text>
-        <circle cx="140" cy="460" r="20" class="kg-dot rh"/><text x="140" y="465" class="label-in">R2</text>
+        <circle cx="140" cy="460" r="20" class="kg-dot rh" data-key="r2"/><text x="140" y="465" class="label-in">R2</text>
         <text x="140" y="488" class="finger-label">middle</text>
-        <circle cx="140" cy="520" r="20" class="kg-dot rh"/><text x="140" y="525" class="label-in">R3</text>
+        <circle cx="140" cy="520" r="20" class="kg-dot rh" data-key="r3"/><text x="140" y="525" class="label-in">R3</text>
         <text x="140" y="548" class="finger-label">ring</text>
 
-        <circle cx="100" cy="370" r="8" class="kg-dot low-l"/>
+        <circle cx="100" cy="370" r="8" class="kg-dot low-l" data-key="csGs"/>
         <text x="8" y="355" class="callout" text-anchor="end">C#/G# key</text>
         <line x1="14" y1="355" x2="92" y2="367" class="kg-line"/>
 
-        <circle cx="180" cy="390" r="8" class="kg-dot low-r"/>
+        <circle cx="180" cy="390" r="8" class="kg-dot low-r" data-key="gsDs"/>
         <text x="280" y="390" class="callout" text-anchor="start">G#/D# key</text>
         <line x1="273" y1="390" x2="188" y2="390" class="kg-line"/>
 
-        <circle cx="100" cy="560" r="8" class="kg-dot low-l"/>
+        <circle cx="100" cy="560" r="8" class="kg-dot low-l" data-key="lowFs"/>
         <text x="8" y="555" class="callout" text-anchor="end">Low F#/C# key</text>
         <line x1="14" y1="555" x2="92" y2="558" class="kg-line"/>
 
-        <circle cx="100" cy="585" r="8" class="kg-dot low-l"/>
+        <circle cx="100" cy="585" r="8" class="kg-dot low-l" data-key="lowE"/>
         <text x="8" y="590" class="callout" text-anchor="end">Low E/B key</text>
         <line x1="14" y1="590" x2="92" y2="586" class="kg-line"/>
 
-        <circle cx="180" cy="572" r="8" class="kg-dot low-r"/>
+        <circle cx="180" cy="572" r="8" class="kg-dot low-r" data-key="lowF"/>
         <text x="280" y="575" class="callout" text-anchor="start">Low F/C key</text>
         <line x1="273" y1="575" x2="188" y2="573" class="kg-line"/>
       </svg>
@@ -1504,6 +1549,7 @@ let rafId = null;
 let scheduledOsc = [];
 let elLanes = {};
 let elLaneKeys = [];
+let lastRenderedActiveEvent = null;
 let nextScheduleIdx = 0;
 const SCHEDULE_HORIZON = 4; // seconds of song-time to keep scheduled ahead of playback
 
@@ -1531,6 +1577,14 @@ function currentTranspose(){
   if (instrumentFamily === 'clarinet') return CLARINET_TRANSPOSE;
   return INSTRUMENT_TRANSPOSE[instrumentSelect.value] ?? 9;
 }
+instrumentSelect.addEventListener('change', ()=>{
+  // If a tuner target is already selected, its cached frequency was computed with the
+  // previous instrument's transposition and is now stale — recompute it rather than
+  // silently comparing against the wrong pitch.
+  if (tunerTargetKey) {
+    tunerTargetFreq = midiFreq(keyToMidi(tunerTargetKey) - currentTranspose());
+  }
+});
 const legendEl = document.getElementById('legend');
 const fsControls = document.getElementById('fsControls');
 const fsPlayBtn = document.getElementById('fsPlayBtn');
@@ -1667,6 +1721,7 @@ function buildBars(){
     elLanes[l].innerHTML = '';
     fragments[l] = document.createDocumentFragment();
   });
+  const auxMeta = activeAuxMeta(); // cached once, not re-resolved per note below
   let barCount = 0;
   events.forEach(ev=>{
     if (ev.trill) {
@@ -1684,7 +1739,7 @@ function buildBars(){
       allKeys.forEach(k=>{
         const track = elLanes[k];
         if (!track) return;
-        const cls = BASE_LANE_CLASS[k] || (activeAuxMeta()[k] && activeAuxMeta()[k].className) || 'lh';
+        const cls = BASE_LANE_CLASS[k] || (auxMeta[k] && auxMeta[k].className) || 'lh';
         const left = ev.start*pxPerSec;
         const width = Math.max(ev.dur*pxPerSec - 3, 12);
         if (trillInfo.toggleKeys.has(k)) {
@@ -1718,7 +1773,7 @@ function buildBars(){
     fingering.forEach(k=>{
       const track = elLanes[k];
       if (!track) return;
-      const cls = BASE_LANE_CLASS[k] || (activeAuxMeta()[k] && activeAuxMeta()[k].className) || 'lh';
+      const cls = BASE_LANE_CLASS[k] || (auxMeta[k] && auxMeta[k].className) || 'lh';
       const bar = document.createElement('div');
       bar.className = 'bar ' + cls;
       bar.style.left = (ev.start*pxPerSec) + 'px';
@@ -1758,6 +1813,13 @@ function renderAt(t){
   elLaneKeys.forEach(l=> elLanes[l].style.transform = `translateX(${-offsetPx}px)`);
 
   const active = findActiveEvent(t);
+  if (active === lastRenderedActiveEvent) {
+    // Same note still active as last frame — the scroll position update above already
+    // happened, but the chips/note-name DOM below is identical to what's already
+    // rendered, so skip rebuilding it. This is the common case during playback: a note
+    // typically spans many consecutive frames, not just one.
+  } else {
+  lastRenderedActiveEvent = active;
   if (active && active.trill) {
     noteNameEl.textContent = active.key.replace(/[0-9]/,'');
     const trillInfo = getTrillInfo(active.key, active.trillTarget);
@@ -1810,6 +1872,7 @@ function renderAt(t){
   } else {
     noteNameEl.textContent = '–';
     chipsEl.innerHTML = '';
+  }
   }
 
   scrub.value = songDuration ? Math.min(1000, (t/songDuration)*1000) : 0;
@@ -1974,7 +2037,7 @@ function playSaxNote(when, dur, midi, opts){
   gain.connect(reverbSend).connect(getReverbBus());
   osc.start(when);
   osc.stop(when+dur+0.05);
-  scheduledOsc.push(osc);
+  scheduledOsc.push({node: osc, stopTime: when+dur+0.05});
 
   // Subtle vibrato that eases in, the way a player settles into a held note rather than
   // wobbling from the very start of every note.
@@ -1988,7 +2051,7 @@ function playSaxNote(when, dur, midi, opts){
     lfo.connect(lfoGain).connect(osc.detune);
     lfo.start(when);
     lfo.stop(when+dur+0.05);
-    scheduledOsc.push(lfo);
+    scheduledOsc.push({node: lfo, stopTime: when+dur+0.05});
   }
 
   // A soft breath/reed chiff right at the attack — this is what mainly reads as "wind
@@ -2018,7 +2081,7 @@ function playSaxNote(when, dur, midi, opts){
     noiseSrc.connect(noiseFilter).connect(noiseGain).connect(audioCtx.destination);
     noiseSrc.start(when);
     noiseSrc.stop(when+noiseDecayTime+0.03);
-    scheduledOsc.push(noiseSrc);
+    scheduledOsc.push({node: noiseSrc, stopTime: when+noiseDecayTime+0.03});
   }
 }
 
@@ -2034,6 +2097,7 @@ function scheduleAudio(fromTime){
 // instead of every remaining oscillator in the whole song — keeps play/pause snappy on long songs.
 function scheduleUpcoming(){
   if (!playing || !soundToggle.checked) return;
+  pruneFinishedAudio();
   const rate = parseFloat(speed.value);
   const nowSongTime = currentTime();
   const horizon = nowSongTime + SCHEDULE_HORIZON;
@@ -2091,8 +2155,18 @@ function scheduleUpcoming(){
   }
 }
 function clearScheduledAudio(){
-  scheduledOsc.forEach(o=>{ try{o.stop();}catch(e){} });
+  scheduledOsc.forEach(o=>{ try{o.node.stop();}catch(e){} });
   scheduledOsc = [];
+}
+// scheduleUpcoming runs every animation frame during playback and only ever adds to
+// scheduledOsc — nothing was pruning entries whose notes had already finished playing,
+// so on a long song this array grew to hold a reference to every oscillator/gain/noise
+// node from the entire session (not just the ~SCHEDULE_HORIZON seconds actually live at
+// any moment), keeping all of it un-garbage-collectable for as long as playback ran.
+function pruneFinishedAudio(){
+  if (!audioCtx) return;
+  const now = audioCtx.currentTime;
+  scheduledOsc = scheduledOsc.filter(o => o.stopTime > now);
 }
 
 // ---------- Practice streak (browser localStorage, same on-device pattern as saved songs) ----------
@@ -2284,6 +2358,8 @@ function setInstrumentFamily(family){
     : "<strong>Instrument &amp; Octave:</strong> switch between Alto, Soprano, Tenor, and Baritone to get correct fingerings and concert pitch for your actual horn. The Octave control shifts a song up or down a full octave if it's written awkwardly high or low — it'll refuse the shift if any note would fall outside the playable range, rather than guessing.";
   updateBaseLaneLabels();
   loadEvents([], 0, '');
+  if (tunerStream) stopTunerListening();
+  populateTunerNoteSelect();
 }
 
 document.getElementById('menuBtn').addEventListener('click', openDrawer);
@@ -2374,6 +2450,66 @@ function freqToNoteInfo(freq){
   return { note: TUNER_NOTE_NAMES[noteIndex], octave, cents, freq };
 }
 
+let tunerTargetKey = null, tunerTargetFreq = null;
+
+// Populates the practice-note dropdown from whichever fingering table is currently
+// active (sax or clarinet) — called on load and again whenever setInstrumentFamily runs,
+// so switching rolls always offers the right note list, not a stale one.
+function populateTunerNoteSelect(){
+  const sel = document.getElementById('tunerNoteSelect');
+  if (!sel) return;
+  const table = activeFingering();
+  const keys = Object.keys(table).sort((a,b)=> keyToMidi(a) - keyToMidi(b));
+  sel.innerHTML = '<option value="" selected disabled>Choose a note…</option>' +
+    keys.map(k => `<option value="${k}">${k}</option>`).join('');
+  tunerTargetKey = null; tunerTargetFreq = null;
+  document.getElementById('tunerFingering').style.display = 'none';
+  document.getElementById('tunerStartBtn').disabled = true;
+  document.getElementById('tunerStatus').textContent = 'Choose a note above to begin.';
+}
+
+// Clones the currently-active key guide diagram (sax or clarinet, whichever is showing)
+// into the tuner modal and highlights the specific keys for the selected note. Cloning
+// the live SVG node rather than duplicating the markup in the HTML source keeps the file
+// from carrying two copies of a fairly large diagram.
+function showTunerDiagram(fingeringKeys){
+  const wrap = document.getElementById('tunerDiagramWrap');
+  const sourceBody = instrumentFamily === 'clarinet'
+    ? document.getElementById('clarinetKeyGuideBody')
+    : document.getElementById('saxKeyGuideBody');
+  const sourceSvg = sourceBody && sourceBody.querySelector('svg');
+  if (!sourceSvg) { wrap.style.display = 'none'; return; }
+  const clone = sourceSvg.cloneNode(true);
+  clone.querySelectorAll('[data-key]').forEach(el => {
+    el.classList.toggle('kg-highlight', fingeringKeys.includes(el.getAttribute('data-key')));
+  });
+  wrap.innerHTML = '';
+  wrap.appendChild(clone);
+  wrap.style.display = '';
+}
+
+// Renders the fingering for the selected note as small color-coded chips, reusing the
+// exact same lane labels/colors the highway itself uses, so it's visually consistent
+// with the rest of the app rather than inventing a separate visual language.
+function showTunerFingering(key){
+  const resolved = getFingering(key);
+  const laneLabels = activeLaneLabel();
+  const auxMeta = activeAuxMeta();
+  const el = document.getElementById('tunerFingering');
+  if (resolved.keys.length === 0) {
+    el.innerHTML = '<span class="tuner-fingering-label">Fingering:</span> <span class="tuner-chip tuner-chip-open">open (no keys down)</span>';
+  } else {
+    const chips = resolved.keys.map(k => {
+      const label = laneLabels[k] || (auxMeta[k] && auxMeta[k].label) || k;
+      const cls = BASE_LANE_CLASS[k] || (auxMeta[k] && auxMeta[k].className) || 'lh';
+      return `<span class="tuner-chip tuner-chip-${cls}">${label}</span>`;
+    }).join('');
+    el.innerHTML = '<span class="tuner-fingering-label">Fingering:</span> ' + chips;
+  }
+  el.style.display = '';
+  showTunerDiagram(resolved.keys);
+}
+
 async function startTunerListening(){
   const statusEl = document.getElementById('tunerStatus');
   try{
@@ -2411,22 +2547,47 @@ async function startTunerListening(){
       if (recentFreqs.length > HISTORY_SIZE) recentFreqs.shift();
       const sorted = [...recentFreqs].sort((a,b)=>a-b);
       const smoothedFreq = sorted[Math.floor(sorted.length/2)];
-      const info = freqToNoteInfo(smoothedFreq);
-      noteEl.textContent = info.note + info.octave;
-      freqEl.textContent = smoothedFreq.toFixed(1) + ' Hz · ' + (info.cents>=0?'+':'') + info.cents + ' cents';
-      const clampedCents = Math.max(-50, Math.min(50, info.cents));
-      needleEl.style.left = (50 + clampedCents) + '%';
+
+      if (tunerTargetFreq) {
+        // Cents from the TARGET note specifically, not from whichever chromatic note
+        // happens to be nearest — that distinction matters because "nearest note" can
+        // silently mask playing an outright wrong note as a small tuning error.
+        const centsFromTarget = Math.round(1200 * Math.log2(smoothedFreq / tunerTargetFreq));
+        noteEl.textContent = tunerTargetKey;
+        if (Math.abs(centsFromTarget) > 60) {
+          // More than half a semitone off the target — this isn't a tuning issue,
+          // it's a different note, so say so plainly instead of showing a confusing
+          // large cents number as if it were a tuning error.
+          const detected = freqToNoteInfo(smoothedFreq);
+          freqEl.textContent = "That sounds like " + detected.note + detected.octave + ", not " + tunerTargetKey;
+          needleEl.style.left = (centsFromTarget > 0 ? 96 : 4) + '%';
+        } else {
+          const clamped = Math.max(-50, Math.min(50, centsFromTarget));
+          needleEl.style.left = (50 + clamped) + '%';
+          if (Math.abs(centsFromTarget) <= 5) {
+            freqEl.textContent = '✓ In tune (' + smoothedFreq.toFixed(1) + ' Hz)';
+          } else {
+            freqEl.textContent = (centsFromTarget > 0 ? '♯ ' : '♭ ') + Math.abs(centsFromTarget) + ' cents ' + (centsFromTarget > 0 ? 'sharp' : 'flat') + ' (' + smoothedFreq.toFixed(1) + ' Hz)';
+          }
+        }
+      } else {
+        const info = freqToNoteInfo(smoothedFreq);
+        noteEl.textContent = info.note + info.octave;
+        freqEl.textContent = smoothedFreq.toFixed(1) + ' Hz · ' + (info.cents>=0?'+':'') + info.cents + ' cents';
+        const clampedCents = Math.max(-50, Math.min(50, info.cents));
+        needleEl.style.left = (50 + clampedCents) + '%';
+      }
     } else {
       recentFreqs = []; // a gap in confident readings resets the smoothing window,
                          // so a stale note can't linger once you've actually stopped
-      noteEl.textContent = '—';
+      noteEl.textContent = tunerTargetKey || '—';
       freqEl.innerHTML = '&nbsp;';
       needleEl.style.left = '50%';
     }
     tunerRafId = requestAnimationFrame(loop);
   }
   loop();
-  statusEl.textContent = 'Listening — play a single sustained note.';
+  statusEl.textContent = 'Listening — play ' + (tunerTargetKey || 'a single sustained note') + '.';
   document.getElementById('tunerStartBtn').textContent = '⏹ Stop listening';
 }
 
@@ -2452,6 +2613,23 @@ document.getElementById('tunerCloseBtn').addEventListener('click', closeTuner);
 tunerBackdrop.addEventListener('click', closeTuner);
 document.getElementById('tunerStartBtn').addEventListener('click', ()=>{
   if (tunerStream) { stopTunerListening(); } else { startTunerListening(); }
+});
+document.getElementById('tunerNoteSelect').addEventListener('change', (e)=>{
+  const key = e.target.value;
+  if (!key) return;
+  tunerTargetKey = key;
+  // Concert-pitch frequency the selected WRITTEN note should actually sound at — this is
+  // the piece that has to be right, since the microphone hears concert pitch regardless
+  // of what the fingering chart is written in. Same formula the audio engine itself uses
+  // (concertMidi = writtenMidi - currentTranspose()), verified against the two standard
+  // reference relationships before shipping: alto sax written A sounds as concert C,
+  // and Bb clarinet written C sounds as concert Bb.
+  tunerTargetFreq = midiFreq(keyToMidi(key) - currentTranspose());
+  showTunerFingering(key);
+  document.getElementById('tunerStartBtn').disabled = false;
+  document.getElementById('tunerStatus').textContent = tunerStream
+    ? 'Listening — play ' + tunerTargetKey + '.'
+    : 'Ready — press Start listening, then play ' + tunerTargetKey + '.';
 });
 
 speed.addEventListener('input', ()=>{
@@ -2486,6 +2664,7 @@ function loadEvents(evs, tempo, label){
   originalEvents = evs;
   octaveShift = 0;
   simplifyLevel = 0;
+  lastRenderedActiveEvent = null;
   document.getElementById('octaveShiftSelect').value = '0';
   document.getElementById('simplifySelect').value = '0';
   events = evs;
@@ -3033,6 +3212,8 @@ renderSavedSongs();
 updateStreakDisplay();
 if (new URLSearchParams(window.location.search).get('instrument') === 'clarinet') {
   setInstrumentFamily('clarinet');
+} else {
+  populateTunerNoteSelect();
 }
 })();
 </script>

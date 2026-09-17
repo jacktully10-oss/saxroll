@@ -390,11 +390,6 @@ function landingPage() {
   .box{width:100%; background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:36px 32px; box-sizing:border-box;}
   .clarinet-box{ padding:24px 28px; }
   .clarinet-box h2{ font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:19px; margin:0 0 8px; color:var(--ink); }
-  .beta-tag{
-    display:inline-block; font-size:10px; font-weight:700; letter-spacing:.04em;
-    color:var(--brass); border:1px solid var(--brass); border-radius:4px;
-    padding:1px 6px; vertical-align:middle; margin-left:4px;
-  }
   .clarinet-box p{ margin-bottom:16px; }
   h1{font-family:'Fraunces',Georgia,serif; font-weight:600; font-size:34px; margin:0 0 8px; letter-spacing:-.01em;}
   h1 em{color:var(--brass); font-style:italic;}
@@ -449,7 +444,7 @@ function landingPage() {
   <div class="msg" id="msg"></div>
 </div>
 <div class="box clarinet-box">
-  <h2>Play clarinet? <span class="beta-tag">Beta</span></h2>
+  <h2>Play clarinet?</h2>
   <p>Clarinet Roll is the same idea, built for Bb clarinet — chalumeau and clarion registers, verified fingerings and transposition. Try it free, no account needed.</p>
   <button class="secondary demo-cta" id="clarinetDemoLink" type="button">Try Clarinet Roll free — no account, no card</button>
 </div>
