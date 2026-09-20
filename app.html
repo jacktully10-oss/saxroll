@@ -241,6 +241,38 @@
     display:flex;
     align-items:center;
   }
+  .breath-window{
+    position:relative;
+    flex:0 1 22px;
+    min-height:0;
+    margin:0 0 2px 92px;
+    overflow:hidden;
+  }
+  .breath-rail{
+    position:absolute;
+    top:0; left:0;
+    height:100%;
+    width:100%;
+    will-change:transform;
+  }
+  .breath-mark{
+    position:absolute;
+    top:2px;
+    width:3px;
+    height:18px;
+    background:var(--brass);
+    border-radius:2px;
+    opacity:.85;
+  }
+  .breath-mark::after{
+    content:'';
+    position:absolute;
+    left:-4px; top:-3px;
+    width:11px; height:11px;
+    border-radius:50%;
+    border:2px solid var(--brass);
+    background:var(--bg-2);
+  }
   .lane-track{
     position:relative;
     height:100%;
@@ -439,6 +471,10 @@
     display:flex; justify-content:space-between; font-size:11px; color:var(--ink-dim);
     text-transform:uppercase; letter-spacing:.04em;
   }
+  .tuner-sustain-stats{
+    text-align:center; font-size:13px; color:var(--ink-dim); margin:12px 0 0; min-height:18px;
+  }
+  .tuner-sustain-stats.holding{ color:var(--brass); font-weight:600; }
   .tuner-status{ font-size:12.5px; color:var(--ink-dim); text-align:center; margin:10px 0 0; min-height:16px; }
   .kg-dot.kg-highlight{
     stroke:#fff !important; stroke-width:3 !important;
@@ -503,6 +539,28 @@
   input[type=range]{accent-color:var(--brass);}
   .row{display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--ink-dim);}
   .scrub{flex:1 1 auto; min-width:0;}
+  .loop-row{
+    display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap;
+  }
+  .loop-toggle{
+    font-size:12.5px; color:var(--ink-dim); display:flex; align-items:center; gap:6px;
+    flex:0 0 auto; user-select:none;
+  }
+  .loop-track{
+    flex:1 1 auto; min-width:80px; height:20px; position:relative;
+    background:var(--line); border-radius:5px;
+  }
+  .loop-range{
+    position:absolute; top:0; bottom:0; background:rgba(217,162,75,.35);
+    border-radius:5px; pointer-events:none;
+  }
+  .loop-handle{
+    position:absolute; top:50%; width:18px; height:18px; border-radius:50%;
+    background:var(--brass); border:2px solid #20150A; transform:translate(-50%,-50%);
+    cursor:grab; touch-action:none;
+  }
+  .loop-handle:active{ cursor:grabbing; }
+  button.tiny:disabled{ opacity:.4; cursor:default; }
   .time{font-variant-numeric:tabular-nums; color:var(--ink-dim); font-size:12px;}
 
   .status{font-size:12.5px; margin-top:10px; color:var(--ink-dim);}
@@ -656,6 +714,7 @@
         <div class="tuner-meter-needle" id="tunerNeedle"></div>
       </div>
       <div class="tuner-labels"><span>flat</span><span>in tune</span><span>sharp</span></div>
+      <p class="tuner-sustain-stats" id="tunerSustainStats"></p>
     </div>
     <button id="tunerStartBtn" type="button" class="secondary" disabled>🎤 Start listening</button>
     <p class="tuner-status" id="tunerStatus">Choose a note above to begin.</p>
@@ -668,91 +727,91 @@
   <details class="key-guide">
     <summary>Key guide — what L1, R3, etc. mean</summary>
     <div class="key-guide-body" id="saxKeyGuideBody">
-      <svg viewBox="-135 -15 560 850" class="sax-diagram" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="-135 -15 580 1000" class="sax-diagram" xmlns="http://www.w3.org/2000/svg">
   <path d="M34.4,0.0 C34.0,7.6 54.9,40.6 71.3,56.0 C87.7,71.5 118.9,76.6 132.9,92.5 C146.8,108.5 157.7,129.3 154.9,152.0 C152.2,174.7 124.0,201.8 116.3,228.8"
         fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
   <path d="M200.4,126.1 C183.1,59.6 101.5,31.2 73.9,10.2 C46.2,-10.8 34.8,-7.6 34.4,0.0"
         fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
   <path d="M217.6,192.5 C219,175 210,145 200.4,126.1" fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linecap="round"/>
-  <path d="M116.3,228.8 L217.6,192.5 L235,650 L134,690 Z" fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M116.3,228.8 L217.6,192.5 L252,900 L145,945 Z" fill="none" stroke="#D9A24B" stroke-width="3.5" stroke-linejoin="round"/>
 
-  <path d="M60,60 L76,68 L60,76 Z" class="kg-dot oct" data-key="oct"/>
-  <text x="8" y="71" class="callout" text-anchor="end">Octave</text>
-  <line x1="14" y1="68" x2="53" y2="68" class="kg-line"/>
+  <path d="M114,248 L132,256 L114,264 Z" class="kg-dot oct" data-key="oct"/>
+  <text x="8" y="260" class="callout" text-anchor="end">Octave (thumb)</text>
+  <line x1="14" y1="256" x2="108" y2="256" class="kg-line"/>
 
-  <circle cx="88" cy="128" r="7" class="kg-dot palm" data-key="palmEb"/>
-  <text x="8" y="110" class="callout" text-anchor="end">Palm Eb</text>
-  <line x1="14" y1="110" x2="81" y2="125" class="kg-line"/>
+  <circle cx="140" cy="300" r="8" class="kg-dot palm" data-key="palmEb"/>
+  <text x="8" y="304" class="callout" text-anchor="end">Palm Eb</text>
+  <line x1="14" y1="300" x2="131" y2="300" class="kg-line"/>
 
-  <circle cx="68" cy="142" r="7" class="kg-dot palm" data-key="palmD"/>
-  <text x="8" y="142" class="callout" text-anchor="end">Palm D</text>
-  <line x1="14" y1="142" x2="61" y2="142" class="kg-line"/>
+  <circle cx="130" cy="332" r="8" class="kg-dot palm" data-key="palmD"/>
+  <text x="8" y="344" class="callout" text-anchor="end">Palm D</text>
+  <line x1="14" y1="340" x2="121" y2="334" class="kg-line"/>
 
-  <circle cx="88" cy="156" r="7" class="kg-dot palm" data-key="palmF"/>
-  <text x="8" y="174" class="callout" text-anchor="end">Palm F</text>
-  <line x1="14" y1="174" x2="81" y2="159" class="kg-line"/>
+  <circle cx="140" cy="364" r="8" class="kg-dot palm" data-key="palmF"/>
+  <text x="8" y="388" class="callout" text-anchor="end">Palm F</text>
+  <line x1="14" y1="384" x2="131" y2="368" class="kg-line"/>
 
-  <circle cx="66" cy="200" r="8" class="kg-dot side" data-key="frontF"/>
-  <text x="8" y="203" class="callout" text-anchor="end">Front F</text>
-  <line x1="14" y1="200" x2="58" y2="200" class="kg-line"/>
+  <circle cx="176" cy="402" r="9" class="kg-dot side" data-key="frontF"/>
+  <text x="340" y="400" class="callout" text-anchor="start">Front F</text>
+  <line x1="333" y1="396" x2="186" y2="402" class="kg-line"/>
 
-  <circle cx="150" cy="270" r="20" class="kg-dot lh" data-key="l1"/><text x="150" y="275" class="label-in">L1</text>
-  <text x="150" y="298" class="finger-label">index</text>
+  <circle cx="176" cy="455" r="22" class="kg-dot lh" data-key="l1"/><text x="176" y="461" class="label-in">L1</text>
+  <text x="176" y="486" class="finger-label">index</text>
 
-  <circle cx="175" cy="300" r="6" class="kg-dot low-l"/>
-  <text x="330" y="275" class="callout" text-anchor="start">Bis Bb</text>
-  <line x1="181" y1="300" x2="323" y2="277" class="kg-line"/>
+  <circle cx="204" cy="492" r="7" class="kg-dot low-l"/>
+  <text x="340" y="492" class="callout" text-anchor="start">Bis Bb</text>
+  <line x1="333" y1="488" x2="212" y2="492" class="kg-line"/>
 
-  <circle cx="158" cy="335" r="20" class="kg-dot lh" data-key="l2"/><text x="158" y="340" class="label-in">L2</text>
-  <text x="158" y="363" class="finger-label">middle</text>
+  <circle cx="180" cy="522" r="22" class="kg-dot lh" data-key="l2"/><text x="180" y="528" class="label-in">L2</text>
+  <text x="180" y="553" class="finger-label">middle</text>
 
-  <circle cx="166" cy="400" r="20" class="kg-dot lh" data-key="l3"/><text x="166" y="405" class="label-in">L3</text>
-  <text x="166" y="428" class="finger-label">ring</text>
+  <circle cx="184" cy="588" r="22" class="kg-dot lh" data-key="l3"/><text x="184" y="594" class="label-in">L3</text>
+  <text x="184" y="619" class="finger-label">ring</text>
 
-  <circle cx="58" cy="365" r="8" class="kg-dot low-l" data-key="keyGs"/>
-  <text x="8" y="352" class="callout" text-anchor="end">G#</text>
-  <line x1="14" y1="352" x2="52" y2="362" class="kg-line"/>
+  <circle cx="137" cy="622" r="9" class="kg-dot low-l" data-key="keyGs"/>
+  <text x="8" y="614" class="callout" text-anchor="end">G#</text>
+  <line x1="14" y1="610" x2="128" y2="619" class="kg-line"/>
 
-  <path d="M58,387 L44,386 A6,6 0 1,0 44,398 L58,397 Z" class="kg-dot low-l" data-key="lowCs"/>
-  <text x="8" y="388" class="callout" text-anchor="end">C#</text>
-  <line x1="14" y1="388" x2="42" y2="392" class="kg-line"/>
+  <rect x="124" y="642" width="20" height="16" rx="8" class="kg-dot low-l" data-key="lowCs"/>
+  <text x="8" y="652" class="callout" text-anchor="end">C#</text>
+  <line x1="14" y1="648" x2="122" y2="650" class="kg-line"/>
 
-  <path d="M86,387 L72,386 A6,6 0 1,0 72,398 L86,397 Z" class="kg-dot low-l" data-key="lowB"/>
-  <text x="8" y="412" class="callout" text-anchor="end">B</text>
-  <line x1="14" y1="412" x2="70" y2="394" class="kg-line"/>
+  <rect x="148" y="642" width="20" height="16" rx="8" class="kg-dot low-l" data-key="lowB"/>
+  <text x="8" y="690" class="callout" text-anchor="end">B</text>
+  <line x1="14" y1="686" x2="148" y2="658" class="kg-line"/>
 
-  <path d="M74,414 L44,413 A7,7 0 1,0 44,427 L74,426 Z" class="kg-dot low-l" data-key="lowBb"/>
-  <text x="8" y="460" class="callout" text-anchor="end">Bb (pinky)</text>
-  <line x1="14" y1="460" x2="42" y2="422" class="kg-line"/>
+  <rect x="128" y="672" width="34" height="17" rx="8.5" class="kg-dot low-l" data-key="lowBb"/>
+  <text x="8" y="728" class="callout" text-anchor="end">Bb (pinky)</text>
+  <line x1="14" y1="724" x2="128" y2="688" class="kg-line"/>
 
-  <circle cx="174" cy="465" r="20" class="kg-dot rh" data-key="r1"/><text x="174" y="470" class="label-in">R1</text>
-  <text x="174" y="493" class="finger-label">index</text>
+  <circle cx="196" cy="660" r="22" class="kg-dot rh" data-key="r1"/><text x="196" y="666" class="label-in">R1</text>
+  <text x="196" y="691" class="finger-label">index</text>
 
-  <circle cx="252" cy="470" r="7" class="kg-dot side" data-key="sideBb"/>
-  <text x="335" y="455" class="callout" text-anchor="start">Side Bb</text>
-  <line x1="259" y1="470" x2="328" y2="457" class="kg-line"/>
+  <circle cx="233" cy="610" r="8" class="kg-dot side" data-key="sideBb"/>
+  <text x="340" y="604" class="callout" text-anchor="start">Side Bb</text>
+  <line x1="333" y1="600" x2="242" y2="609" class="kg-line"/>
 
-  <circle cx="270" cy="495" r="7" class="kg-dot side" data-key="highFs"/>
-  <text x="335" y="500" class="callout" text-anchor="start">Side C</text>
-  <line x1="277" y1="495" x2="328" y2="500" class="kg-line"/>
+  <circle cx="237" cy="641" r="8" class="kg-dot side" data-key="highFs"/>
+  <text x="340" y="646" class="callout" text-anchor="start">High F#</text>
+  <line x1="333" y1="642" x2="246" y2="641" class="kg-line"/>
 
-  <circle cx="272" cy="525" r="7" class="kg-dot side" data-key="sideE"/>
-  <text x="335" y="546" class="callout" text-anchor="start">Side E</text>
-  <line x1="279" y1="525" x2="328" y2="544" class="kg-line"/>
+  <circle cx="240" cy="672" r="8" class="kg-dot side" data-key="sideE"/>
+  <text x="340" y="688" class="callout" text-anchor="start">Side E</text>
+  <line x1="333" y1="684" x2="249" y2="674" class="kg-line"/>
 
-  <circle cx="182" cy="530" r="20" class="kg-dot rh" data-key="r2"/><text x="182" y="535" class="label-in">R2</text>
-  <text x="182" y="558" class="finger-label">middle</text>
+  <circle cx="200" cy="726" r="22" class="kg-dot rh" data-key="r2"/><text x="200" y="732" class="label-in">R2</text>
+  <text x="200" y="757" class="finger-label">middle</text>
 
-  <circle cx="190" cy="595" r="20" class="kg-dot rh" data-key="r3"/><text x="190" y="600" class="label-in">R3</text>
-  <text x="190" y="623" class="finger-label">ring</text>
+  <circle cx="204" cy="792" r="22" class="kg-dot rh" data-key="r3"/><text x="204" y="798" class="label-in">R3</text>
+  <text x="204" y="823" class="finger-label">ring</text>
 
-  <path d="M214,599.5 L228,598.5 A6,6 0 1,1 228,610.5 L214,609.5 Z" class="kg-dot low-r" data-key="lowEb"/>
-  <text x="335" y="583" class="callout" text-anchor="start">Eb (pinky)</text>
-  <line x1="328" y1="583" x2="230" y2="604" class="kg-line"/>
+  <rect x="238" y="804" width="22" height="16" rx="8" class="kg-dot low-r" data-key="lowEb"/>
+  <text x="340" y="804" class="callout" text-anchor="start">Eb (pinky)</text>
+  <line x1="333" y1="800" x2="262" y2="810" class="kg-line"/>
 
-  <path d="M226,612 L240,611 A6,6 0 1,1 240,623 L226,622 Z" class="kg-dot low-r" data-key="lowC"/>
-  <text x="335" y="628" class="callout" text-anchor="start">C (pinky)</text>
-  <line x1="328" y1="628" x2="242" y2="617" class="kg-line"/>
+  <rect x="242" y="832" width="22" height="16" rx="8" class="kg-dot low-r" data-key="lowC"/>
+  <text x="340" y="846" class="callout" text-anchor="start">C (pinky)</text>
+  <line x1="333" y1="842" x2="266" y2="840" class="kg-line"/>
 </svg>
       <p class="kg-note">Purple = octave key, orange = left hand, blue = right hand, teal = left pinky, dark teal = right pinky, rose = side/front keys, light blue = bis Bb key, violet = palm keys. One horn, top to bottom — left hand plays the upper body, right hand continues further down the same instrument.</p>
     </div>
@@ -827,6 +886,7 @@
     <button class="fs-hover-btn" id="fullscreenBtn" type="button" title="Fullscreen">⛶</button>
     <div class="now-line"></div>
     <div class="lanes" id="lanes">
+      <div class="breath-window"><div class="breath-rail" id="track-breath"></div></div>
       <div class="open-note-window"><div class="open-note-rail" id="track-open"></div></div>
       <div class="lane"><div class="lane-label">Oct</div><div class="lane-track"><div class="lane-rail" id="track-oct"></div></div></div>
       <div class="lane"><div class="lane-label">L1</div><div class="lane-track"><div class="lane-rail" id="track-l1"></div></div></div>
@@ -904,6 +964,17 @@
       <div class="row" style="margin-top:12px;">
         <input type="range" id="scrub" class="scrub" min="0" max="1000" value="0" disabled>
         <span class="time" id="timeLabel">0:00 / 0:00</span>
+      </div>
+      <div class="loop-row" id="loopRow">
+        <label class="loop-toggle"><input type="checkbox" id="loopToggle" disabled> Loop</label>
+        <div class="loop-track" id="loopTrack">
+          <div class="loop-range" id="loopRange" style="display:none;"></div>
+          <div class="loop-handle" id="loopHandleA" style="display:none;" title="Loop start (A)"></div>
+          <div class="loop-handle" id="loopHandleB" style="display:none;" title="Loop end (B)"></div>
+        </div>
+        <button class="secondary tiny" id="setLoopABtn" type="button" disabled>Set A</button>
+        <button class="secondary tiny" id="setLoopBBtn" type="button" disabled>Set B</button>
+        <button class="secondary tiny" id="clearLoopBtn" type="button" disabled>Clear</button>
       </div>
     </div>
 
@@ -1208,6 +1279,12 @@ function parseMusicXML(xmlText){
   let trillActive = false;
   let pendingTremolo = null;
   const events = [];
+  // Rests long enough to actually breathe in, captured separately from events so the
+  // existing note-handling logic (simplify, octave shift, difficulty, etc.) never has
+  // to know about them. 0.35s is roughly a dotted-eighth at a moderate tempo — long
+  // enough to be a real breath opportunity, not just a normal gap between notes.
+  const BREATH_MIN_DUR = 0.35;
+  const rests = [];
 
   const measures = part.querySelectorAll('measure');
   measures.forEach(measure=>{
@@ -1256,6 +1333,10 @@ function parseMusicXML(xmlText){
         const voice = voiceEl ? voiceEl.textContent : '1';
 
         const rest = el.querySelector('rest');
+        if (rest && voice === '1') {
+          const restStart = Math.max(cursor, 0);
+          if (durSec >= BREATH_MIN_DUR) rests.push({ start: restStart, dur: durSec });
+        }
         if (!rest && voice === '1') {
           const pitchEl = el.querySelector('pitch');
           if (pitchEl) {
@@ -1305,7 +1386,7 @@ function parseMusicXML(xmlText){
   }
   events.sort((a,b)=> a.start - b.start);
   if (!events.length) throw new Error('No notes found in that file.');
-  return { events, tempo };
+  return { events, tempo, rests };
 }
 
 // Shared helper: turns a phrase (array of note names, or [note, beats] pairs for
@@ -1507,6 +1588,7 @@ const GROUP_ORDER = ['lowL','lowR','side','palm'];
 
 let events = [];
 let originalEvents = []; // the song's written notes exactly as parsed, before any octave shift
+let currentRests = []; // breath-worthy rests for the current song, from parseMusicXML — timing only, never affected by octave shift or simplify since neither changes note timing
 let octaveShift = 0;
 let songDuration = 0;
 let songBaseTempo = 120;
@@ -1531,6 +1613,7 @@ function scheduleVisualRebuild(){
   }, 120);
 }
 let playing = false;
+let loopA = null, loopB = null, loopEnabled = false;
 
 // Shifts a written note name by whole octaves only (e.g. "F#4" + 1 -> "F#5"). The pitch
 // class never changes — only the octave digit — since we're never shifting by anything
@@ -1563,6 +1646,14 @@ const fullscreenBtn = document.getElementById('fullscreenBtn');
 const highwayShellEl = document.getElementById('highwayShell');
 const scrub = document.getElementById('scrub');
 const timeLabel = document.getElementById('timeLabel');
+const loopToggle = document.getElementById('loopToggle');
+const loopTrack = document.getElementById('loopTrack');
+const loopRange = document.getElementById('loopRange');
+const loopHandleA = document.getElementById('loopHandleA');
+const loopHandleB = document.getElementById('loopHandleB');
+const setLoopABtn = document.getElementById('setLoopABtn');
+const setLoopBBtn = document.getElementById('setLoopBBtn');
+const clearLoopBtn = document.getElementById('clearLoopBtn');
 const speed = document.getElementById('speed');
 const bpmInput = document.getElementById('bpmInput');
 const speedVal = document.getElementById('speedVal');
@@ -1622,6 +1713,7 @@ function buildLanes(){
   elLanes = {};
   BASE_LANES.forEach(l=> elLanes[l] = document.getElementById('track-'+l));
   elLanes['__open'] = document.getElementById('track-open');
+  elLanes['__breath'] = document.getElementById('track-breath');
 
   const auxMeta = activeAuxMeta();
   const aux = usedAuxKeys();
@@ -1782,6 +1874,13 @@ function buildBars(){
       barCount++;
     });
   });
+  currentRests.forEach(r=>{
+    const mark = document.createElement('div');
+    mark.className = 'breath-mark';
+    mark.style.left = (r.start*pxPerSec) + 'px';
+    mark.title = 'Breathe here';
+    fragments['__breath'].appendChild(mark);
+  });
   elLaneKeys.forEach(l => elLanes[l].appendChild(fragments[l]));
   songDuration = events.length ? events[events.length-1].start + events[events.length-1].dur : 0;
   return barCount;
@@ -1884,6 +1983,14 @@ function renderAt(t){
 function tick(){
   const t = currentTime();
   renderAt(t);
+  if (loopEnabled && loopA !== null && loopB !== null && t >= loopB) {
+    pausedAt = loopA;
+    startCtxTime = audioCtx.currentTime;
+    scheduleAudio(loopA);
+    renderAt(loopA);
+    rafId = requestAnimationFrame(tick);
+    return;
+  }
   scheduleUpcoming();
   if (t >= songDuration) {
     stopPlayback(true);
@@ -2302,6 +2409,76 @@ fullscreenBtn.addEventListener('click', ()=>{
   });
 });
 window.addEventListener('resize', ()=> renderAt(currentTime()));
+// ---------- A-B loop ----------
+// Keeps the handles/highlight in sync with loopA/loopB, and quietly turns the loop off
+// if either point gets cleared — a half-set loop (only A, or only B) can't actually loop.
+function updateLoopUI(){
+  const hasA = loopA !== null, hasB = loopB !== null;
+  loopHandleA.style.display = hasA ? '' : 'none';
+  loopHandleB.style.display = hasB ? '' : 'none';
+  loopRange.style.display = (hasA && hasB) ? '' : 'none';
+  if (songDuration > 0) {
+    if (hasA) loopHandleA.style.left = ((loopA/songDuration)*100) + '%';
+    if (hasB) loopHandleB.style.left = ((loopB/songDuration)*100) + '%';
+    if (hasA && hasB) {
+      const leftPct = (loopA/songDuration)*100, rightPct = (loopB/songDuration)*100;
+      loopRange.style.left = leftPct + '%';
+      loopRange.style.width = Math.max(0, rightPct-leftPct) + '%';
+    }
+  }
+  clearLoopBtn.disabled = !(hasA || hasB);
+  loopToggle.disabled = !(hasA && hasB);
+  if (!(hasA && hasB) && loopEnabled) { loopEnabled = false; loopToggle.checked = false; }
+}
+
+function loopTimeFromPointer(clientX){
+  const rect = loopTrack.getBoundingClientRect();
+  const frac = rect.width ? Math.max(0, Math.min(1, (clientX - rect.left) / rect.width)) : 0;
+  return frac * songDuration;
+}
+
+function setupLoopHandleDrag(handle, isA){
+  handle.addEventListener('pointerdown', (e)=>{
+    if (!songDuration) return;
+    handle.setPointerCapture(e.pointerId);
+    const onMove = (e)=>{
+      let t = loopTimeFromPointer(e.clientX);
+      if (isA) { if (loopB !== null) t = Math.min(t, loopB - 0.05); loopA = Math.max(0, t); }
+      else { if (loopA !== null) t = Math.max(t, loopA + 0.05); loopB = Math.min(songDuration, t); }
+      updateLoopUI();
+    };
+    const onUp = (e)=>{
+      handle.releasePointerCapture(e.pointerId);
+      handle.removeEventListener('pointermove', onMove);
+      handle.removeEventListener('pointerup', onUp);
+    };
+    handle.addEventListener('pointermove', onMove);
+    handle.addEventListener('pointerup', onUp);
+  });
+}
+setupLoopHandleDrag(loopHandleA, true);
+setupLoopHandleDrag(loopHandleB, false);
+
+// Set A/B from the current playback position — often more useful than dragging, since you
+// can tap it the instant you hear the phrase start/end while the song is actually playing.
+setLoopABtn.addEventListener('click', ()=>{
+  if (!songDuration) return;
+  const t = currentTime();
+  loopA = Math.max(0, loopB !== null ? Math.min(t, loopB - 0.05) : t);
+  updateLoopUI();
+});
+setLoopBBtn.addEventListener('click', ()=>{
+  if (!songDuration) return;
+  const t = currentTime();
+  loopB = Math.min(songDuration, loopA !== null ? Math.max(t, loopA + 0.05) : t);
+  updateLoopUI();
+});
+clearLoopBtn.addEventListener('click', ()=>{
+  loopA = null; loopB = null; loopEnabled = false; loopToggle.checked = false;
+  updateLoopUI();
+});
+loopToggle.addEventListener('change', ()=>{ loopEnabled = loopToggle.checked; });
+
 scrub.addEventListener('input', ()=>{
   const t = (scrub.value/1000)*songDuration;
   pausedAt = t;
@@ -2539,6 +2716,35 @@ async function startTunerListening(){
   const HISTORY_SIZE = 5;
   let recentFreqs = [];
 
+  // Long-tone / sustain tracking: while a valid reading continues (roughly) uninterrupted,
+  // track how long it's been held and how far each reading sat from the reference pitch
+  // (the selected target note if one's set, otherwise the nearest chromatic note — the
+  // same "cents" value already being shown on the meter either way). A gap in valid
+  // readings ends the current hold and shows a summary, the same way a real long-tone
+  // exercise ends when the air runs out.
+  const sustainStatsEl = document.getElementById('tunerSustainStats');
+  const SUSTAIN_MIN_DUR = 0.6; // ignore blips shorter than this — not a real sustained attempt
+  let sustainStartTime = null;
+  let sustainCents = [];
+  let sustainNoteName = null;
+
+  function endSustain(){
+    if (sustainStartTime === null) return;
+    const heldFor = tunerAudioCtx.currentTime - sustainStartTime;
+    if (heldFor >= SUSTAIN_MIN_DUR && sustainCents.length) {
+      const avgAbs = sustainCents.reduce((s,c)=>s+Math.abs(c),0) / sustainCents.length;
+      const best = Math.min(...sustainCents.map(Math.abs));
+      sustainStatsEl.className = 'tuner-sustain-stats';
+      sustainStatsEl.textContent = 'Held ' + heldFor.toFixed(1) + 's · avg ' + Math.round(avgAbs) + '¢ off · best ' + best + '¢';
+    } else {
+      sustainStatsEl.className = 'tuner-sustain-stats';
+      sustainStatsEl.textContent = '';
+    }
+    sustainStartTime = null;
+    sustainCents = [];
+    sustainNoteName = null;
+  }
+
   function loop(){
     tunerAnalyser.getFloatTimeDomainData(buf);
     const { freq, clarity } = detectPitch(buf, tunerAudioCtx.sampleRate);
@@ -2561,6 +2767,7 @@ async function startTunerListening(){
           const detected = freqToNoteInfo(smoothedFreq);
           freqEl.textContent = "That sounds like " + detected.note + detected.octave + ", not " + tunerTargetKey;
           needleEl.style.left = (centsFromTarget > 0 ? 96 : 4) + '%';
+          endSustain();
         } else {
           const clamped = Math.max(-50, Math.min(50, centsFromTarget));
           needleEl.style.left = (50 + clamped) + '%';
@@ -2569,6 +2776,11 @@ async function startTunerListening(){
           } else {
             freqEl.textContent = (centsFromTarget > 0 ? '♯ ' : '♭ ') + Math.abs(centsFromTarget) + ' cents ' + (centsFromTarget > 0 ? 'sharp' : 'flat') + ' (' + smoothedFreq.toFixed(1) + ' Hz)';
           }
+          if (sustainStartTime === null) sustainStartTime = tunerAudioCtx.currentTime;
+          sustainCents.push(centsFromTarget);
+          const heldFor = tunerAudioCtx.currentTime - sustainStartTime;
+          sustainStatsEl.className = 'tuner-sustain-stats holding';
+          sustainStatsEl.textContent = 'Holding — ' + heldFor.toFixed(1) + 's';
         }
       } else {
         const info = freqToNoteInfo(smoothedFreq);
@@ -2576,6 +2788,13 @@ async function startTunerListening(){
         freqEl.textContent = smoothedFreq.toFixed(1) + ' Hz · ' + (info.cents>=0?'+':'') + info.cents + ' cents';
         const clampedCents = Math.max(-50, Math.min(50, info.cents));
         needleEl.style.left = (50 + clampedCents) + '%';
+        const noteName = info.note + info.octave;
+        if (sustainStartTime !== null && noteName !== sustainNoteName) endSustain(); // slid to a different note
+        if (sustainStartTime === null) { sustainStartTime = tunerAudioCtx.currentTime; sustainNoteName = noteName; }
+        sustainCents.push(info.cents);
+        const heldFor = tunerAudioCtx.currentTime - sustainStartTime;
+        sustainStatsEl.className = 'tuner-sustain-stats holding';
+        sustainStatsEl.textContent = 'Holding ' + noteName + ' — ' + heldFor.toFixed(1) + 's';
       }
     } else {
       recentFreqs = []; // a gap in confident readings resets the smoothing window,
@@ -2583,6 +2802,7 @@ async function startTunerListening(){
       noteEl.textContent = tunerTargetKey || '—';
       freqEl.innerHTML = '&nbsp;';
       needleEl.style.left = '50%';
+      endSustain();
     }
     tunerRafId = requestAnimationFrame(loop);
   }
@@ -2602,6 +2822,8 @@ function stopTunerListening(){
   if (freqEl) freqEl.innerHTML = '&nbsp;';
   const needleEl = document.getElementById('tunerNeedle');
   if (needleEl) needleEl.style.left = '50%';
+  const sustainStatsEl = document.getElementById('tunerSustainStats');
+  if (sustainStatsEl) { sustainStatsEl.textContent = ''; sustainStatsEl.className = 'tuner-sustain-stats'; }
   const startBtn = document.getElementById('tunerStartBtn');
   if (startBtn) startBtn.textContent = '🎤 Start listening';
   const statusEl = document.getElementById('tunerStatus');
@@ -2659,9 +2881,10 @@ soundToggle.addEventListener('change', ()=>{
   if (playing) { pausedAt = currentTime(); pausePlayback(); startPlayback(); }
 });
 
-function loadEvents(evs, tempo, label){
+function loadEvents(evs, tempo, label, rests){
   stopPlayback(true);
   originalEvents = evs;
+  currentRests = rests || [];
   octaveShift = 0;
   simplifyLevel = 0;
   lastRenderedActiveEvent = null;
@@ -2694,6 +2917,10 @@ function loadEvents(evs, tempo, label){
   playBtn.disabled = false;
   restartBtn.disabled = false;
   scrub.disabled = false;
+  loopA = null; loopB = null; loopEnabled = false;
+  loopToggle.checked = false;
+  setLoopABtn.disabled = false; setLoopBBtn.disabled = false;
+  updateLoopUI();
   statusEl.className = 'status ok';
   statusEl.textContent = label + ` (${barCount} fingering bars placed)`;
 }
@@ -2965,11 +3192,12 @@ const DEMO_UPLOAD_LIMIT = 3;
 // sax comes in (e.g. first note at 1:30) shouldn't burn the whole preview window on
 // silence; the window starts counting from that first note instead.
 const DEMO_PREVIEW_WINDOW = 40;
-function truncateForDemoPreview(evs){
+function truncateForDemoPreview(evs, referenceEvs){
   if (!evs.length) return evs;
-  const firstNoteStart = Math.min(...evs.map(e => e.start));
+  const ref = (referenceEvs && referenceEvs.length) ? referenceEvs : evs;
+  const firstNoteStart = Math.min(...ref.map(e => e.start));
   const cutoff = firstNoteStart + DEMO_PREVIEW_WINDOW;
-  return evs.filter(ev => ev.start < cutoff);
+  return evs.filter(ev => ev.start >= firstNoteStart && ev.start < cutoff);
 }
 const isDemoMode = window.location.pathname === '/demo';
 function demoUploadsUsed(){
@@ -3053,9 +3281,10 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
       .then(buf => extractXmlFromMxl(buf))
       .then(xmlText=>{
         try{
-          const {events: evsRaw, tempo} = parseMusicXML(xmlText);
+          const {events: evsRaw, tempo, rests: restsRaw} = parseMusicXML(xmlText);
           const evs = isDemoMode ? truncateForDemoPreview(evsRaw) : evsRaw;
-          loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''));
+          const rests = isDemoMode ? truncateForDemoPreview(restsRaw, evsRaw) : restsRaw;
+          loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''), rests);
           lastLoadedXmlText = xmlText;
           document.getElementById('saveNameInput').disabled = false;
           document.getElementById('saveNameInput').value = file.name.replace(/\.(xml|musicxml|mxl)$/i,'');
@@ -3074,9 +3303,10 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
   const reader = new FileReader();
   reader.onload = ()=>{
     try{
-      const {events: evsRaw, tempo} = parseMusicXML(reader.result);
+      const {events: evsRaw, tempo, rests: restsRaw} = parseMusicXML(reader.result);
       const evs = isDemoMode ? truncateForDemoPreview(evsRaw) : evsRaw;
-      loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''));
+      const rests = isDemoMode ? truncateForDemoPreview(restsRaw, evsRaw) : restsRaw;
+      loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''), rests);
       lastLoadedXmlText = reader.result;
       document.getElementById('saveNameInput').disabled = false;
       document.getElementById('saveNameInput').value = file.name.replace(/\.(xml|musicxml|mxl)$/i,'');
@@ -3163,9 +3393,10 @@ function loadSavedSong(name){
     const raw = localStorage.getItem(SAVE_KEY_PREFIX+name);
     if (!raw) throw new Error('That saved song is gone — try refreshing the list.');
     const data = JSON.parse(raw);
-    const {events: evsRaw, tempo} = parseMusicXML(data.xml);
+    const {events: evsRaw, tempo, rests: restsRaw} = parseMusicXML(data.xml);
     const evs = isDemoMode ? truncateForDemoPreview(evsRaw) : evsRaw;
-    loadEvents(evs, tempo, `Loaded saved song "${name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''));
+    const rests = isDemoMode ? truncateForDemoPreview(restsRaw, evsRaw) : restsRaw;
+    loadEvents(evs, tempo, `Loaded saved song "${name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''), rests);
     lastLoadedXmlText = data.xml;
     saveNameInput.disabled = false;
     saveNameInput.value = name;
