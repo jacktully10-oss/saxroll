@@ -142,6 +142,8 @@
     background:rgba(217,162,75,.08); border-color:rgba(217,162,75,.35);
   }
   .disclaimer.neutral strong, .disclaimer.neutral a{ color:var(--brass); }
+  .part-picker{ margin:0 0 14px; display:flex; flex-direction:column; gap:10px; }
+  .part-picker .demo-select-row{ margin:0; }
   .file-help{ margin:0 0 14px; }
   .file-help summary{
     cursor:pointer; color:var(--brass); font-size:13px; font-weight:600;
@@ -177,7 +179,7 @@
   }
   body.is-fullscreen .lanes::-webkit-scrollbar{ display:none; width:0; height:0; }
   body.is-fullscreen .lane{
-    flex:1 1 0; min-height:34px; margin:4px 0;
+    flex:0 0 44px; min-height:0; margin:6px 0;
   }
   body.is-fullscreen .bar{ border-radius:12px; }
   body.is-fullscreen .lane-label{ font-size:16px; width:120px; flex:0 0 120px; }
@@ -303,8 +305,8 @@
   }
   .bar{
     position:absolute;
-    top:3px; bottom:3px;
-    border-radius:6px;
+    top:6px; bottom:6px;
+    border-radius:5px;
     opacity:.92;
     min-width:4px;
   }
@@ -1000,7 +1002,15 @@
         </div>
       </details>
       <div class="controls" id="uploadControls">
-        <input type="file" id="fileInput" accept=".xml,.musicxml,.mxl,.pdf">
+        <input type="file" id="fileInput">
+      </div>
+      <div class="part-picker" id="partPicker" style="display:none;">
+        <p class="disclaimer neutral" id="partPickerNote"></p>
+        <div class="demo-select-row">
+          <label class="demo-select-label" for="partPickerSelect">Part to load</label>
+          <select id="partPickerSelect" class="demo-select"></select>
+        </div>
+        <button type="button" id="partPickerLoadBtn" class="secondary">Load this part</button>
       </div>
       <p class="disclaimer" id="demoUploadNotice" style="display:none;"></p>
       <p class="section-divider" id="uploadDivider">— or try a demo, no file needed —</p>
@@ -1266,12 +1276,64 @@ function midiToName(midi){
 // ---------- MusicXML parsing ----------
 const STEP_SEMITONE = {C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 
-function parseMusicXML(xmlText){
+// Multi-instrument scores (band/orchestra arrangements) list every instrument as its own
+// <part> — blindly taking the first one is wrong whenever that instrument isn't first in
+// the file's part order, and there's no reason it would be. This finds the part that
+// actually matches the current instrument family, checking MusicXML's standardized
+// instrument-sound taxonomy first (e.g. "wind.reed.saxophone.alto") since that's far more
+// reliable than free-text names, then falling back to matching part-name/instrument-name
+// text. Falls back to the first part only when nothing in the file identifies instruments
+// at all — the common case for a file that's just one solo part to begin with.
+function selectInstrumentPart(doc, parts){
+  if (parts.length <= 1) return parts[0];
+  const wantSound = instrumentFamily === 'clarinet' ? /clarinet/i : /saxophone/i;
+  const wantName = instrumentFamily === 'clarinet' ? /clarinet/i : /\bsax(ophone)?\b/i;
+
+  const scoreParts = [...doc.querySelectorAll('part-list > score-part')];
+  let matchId = null;
+  for (const sp of scoreParts) {
+    const sound = sp.querySelector('instrument-sound');
+    if (sound && wantSound.test(sound.textContent)) { matchId = sp.getAttribute('id'); break; }
+  }
+  if (!matchId) {
+    for (const sp of scoreParts) {
+      const name = sp.querySelector('part-name, instrument-name');
+      if (name && wantName.test(name.textContent)) { matchId = sp.getAttribute('id'); break; }
+    }
+  }
+  if (matchId) {
+    const matched = [...parts].find(p => p.getAttribute('id') === matchId);
+    if (matched) return matched;
+  }
+  return parts[0];
+}
+
+// Lightweight check for the upload flow: just lists what instruments a score contains,
+// without walking every note. Lets the app decide whether to show a part picker before
+// committing to a full parse. Returns null if the doc has 0 or 1 parts (nothing to pick).
+function listScoreParts(xmlText){
+  const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
+  if (doc.querySelector('parsererror')) throw new Error('Could not read that file as XML.');
+  const parts = doc.querySelectorAll('score-partwise > part, part');
+  if (parts.length <= 1) return null;
+  const scoreParts = [...doc.querySelectorAll('part-list > score-part')];
+  const matched = selectInstrumentPart(doc, parts);
+  const matchedId = matched.getAttribute('id');
+  return scoreParts.map(sp => {
+    const id = sp.getAttribute('id');
+    const nameEl = sp.querySelector('part-name, instrument-name');
+    return { id, name: (nameEl && nameEl.textContent.trim()) || id, isAutoMatch: id === matchedId };
+  });
+}
+
+function parseMusicXML(xmlText, forcePartId){
   const doc = new DOMParser().parseFromString(xmlText, 'application/xml');
   if (doc.querySelector('parsererror')) throw new Error('Could not read that file as XML.');
   const parts = doc.querySelectorAll('score-partwise > part, part');
   if (!parts.length) throw new Error('No <part> found — is this a MusicXML file?');
-  const part = parts[0];
+  const part = forcePartId
+    ? ([...parts].find(p => p.getAttribute('id') === forcePartId) || selectInstrumentPart(doc, parts))
+    : selectInstrumentPart(doc, parts);
 
   let divisions = 1;
   let tempo = 100;
@@ -1594,6 +1656,24 @@ let songDuration = 0;
 let songBaseTempo = 120;
 const BASE_PX_PER_SEC = 115;
 let pxPerSec = BASE_PX_PER_SEC;
+let songSpeedFactor = 1; // computed once per song load, constant for that song's entire playback
+
+// A song full of short notes needs more room per second to stay legible — rather than
+// leaning entirely on a min-width floor (which makes fast passages look like a wall of
+// identical little blocks), the song's own base scroll speed adapts once, at load time,
+// to how fast its typical notes actually are. This does NOT touch audio timing at all:
+// bar position and scroll offset both scale by the same pxPerSec, so a note still
+// arrives at the now-line at exactly the right moment regardless of this factor — it's
+// a zoom level, not a tempo change.
+function computeSongSpeedFactor(evs){
+  const durs = evs.map(e => e.dur).filter(d => d > 0).sort((a,b) => a-b);
+  if (durs.length < 4) return 1;
+  const p15 = durs[Math.floor(durs.length * 0.15)]; // typical short note, not the single shortest outlier
+  const TARGET_MIN_WIDTH = 20; // px a typical short note should get from speed alone
+  const neededPxPerSec = TARGET_MIN_WIDTH / p15;
+  const factor = neededPxPerSec / BASE_PX_PER_SEC;
+  return Math.min(2.2, Math.max(1, factor)); // never slows a song down, caps how much it speeds up
+}
 
 // Slowing down practice speed spreads the bars out (easier to read at a glance) instead
 // of just scrolling the same fixed-width layout more slowly. Bounded so extreme speed
@@ -1601,7 +1681,7 @@ let pxPerSec = BASE_PX_PER_SEC;
 function updateVisualScale(){
   const rate = parseFloat(speed.value) || 1;
   const scaleFactor = Math.min(2.5, Math.max(0.4, 1/rate));
-  pxPerSec = BASE_PX_PER_SEC * scaleFactor;
+  pxPerSec = BASE_PX_PER_SEC * scaleFactor * songSpeedFactor;
 }
 let rebuildScaleTimer = null;
 function scheduleVisualRebuild(){
@@ -1717,8 +1797,30 @@ function buildLanes(){
 
   const auxMeta = activeAuxMeta();
   const aux = usedAuxKeys();
+  const octLaneEl = document.getElementById('track-oct').closest('.lane');
+
+  // Palm keys sit physically near the top of the horn's body, close to where the left
+  // hand's fingers already are -- shown above the octave lane rather than buried at the
+  // bottom with the other auxiliary keys, but only when a song actually uses them.
+  const palmKeys = aux.filter(k => auxMeta[k].group === 'palm');
+  const restKeys = aux.filter(k => auxMeta[k].group !== 'palm');
+
+  if (palmKeys.length && octLaneEl) {
+    const palmDivider = document.createElement('div');
+    palmDivider.className = 'lane-divider aux-lane-el';
+    lanesEl.insertBefore(palmDivider, octLaneEl);
+    palmKeys.forEach(key=>{
+      const meta = auxMeta[key];
+      const lane = document.createElement('div');
+      lane.className = 'lane aux-lane-el';
+      lane.innerHTML = `<div class="lane-label">${meta.label}</div><div class="lane-track"><div class="lane-rail"></div></div>`;
+      lanesEl.insertBefore(lane, octLaneEl);
+      elLanes[key] = lane.querySelector('.lane-rail');
+    });
+  }
+
   let lastGroup = null;
-  aux.forEach(key=>{
+  restKeys.forEach(key=>{
     const meta = auxMeta[key];
     if (meta.group !== lastGroup) {
       const divider = document.createElement('div');
@@ -1823,7 +1925,7 @@ function buildBars(){
         const openBar = document.createElement('div');
         openBar.className = 'open-bar';
         openBar.style.left = (ev.start*pxPerSec) + 'px';
-        openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 12) + 'px';
+        openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 9) + 'px';
         fragments['__open'].appendChild(openBar);
         barCount++;
         return;
@@ -1833,7 +1935,7 @@ function buildBars(){
         if (!track) return;
         const cls = BASE_LANE_CLASS[k] || (auxMeta[k] && auxMeta[k].className) || 'lh';
         const left = ev.start*pxPerSec;
-        const width = Math.max(ev.dur*pxPerSec - 3, 12);
+        const width = Math.max(ev.dur*pxPerSec - 3, 9);
         if (trillInfo.toggleKeys.has(k)) {
           const zz = makeTrillZigzag(width, cls);
           zz.style.left = left + 'px';
@@ -1857,7 +1959,7 @@ function buildBars(){
       const openBar = document.createElement('div');
       openBar.className = 'open-bar';
       openBar.style.left = (ev.start*pxPerSec) + 'px';
-      openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 12) + 'px';
+      openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 9) + 'px';
       fragments['__open'].appendChild(openBar);
       barCount++;
       return;
@@ -1869,7 +1971,7 @@ function buildBars(){
       const bar = document.createElement('div');
       bar.className = 'bar ' + cls;
       bar.style.left = (ev.start*pxPerSec) + 'px';
-      bar.style.width = Math.max(ev.dur*pxPerSec - 3, 12) + 'px';
+      bar.style.width = Math.max(ev.dur*pxPerSec - 3, 9) + 'px';
       fragments[k].appendChild(bar);
       barCount++;
     });
@@ -2888,6 +2990,7 @@ function loadEvents(evs, tempo, label, rests){
   octaveShift = 0;
   simplifyLevel = 0;
   lastRenderedActiveEvent = null;
+  songSpeedFactor = computeSongSpeedFactor(evs);
   document.getElementById('octaveShiftSelect').value = '0';
   document.getElementById('simplifySelect').value = '0';
   events = evs;
@@ -3261,6 +3364,59 @@ function readFileAsArrayBuffer(file){
   });
 }
 
+let pendingUploadXml = null;
+let pendingUploadLabel = null;
+
+// Shared by both the normal single-part path and the "confirm which part" path below --
+// everything after parsing (demo truncation, loadEvents, save-button state, recording a
+// demo upload) is identical either way, so this is the one place that does it.
+function finishLoadingXml(xmlText, fileNameForLabel, forcePartId){
+  try{
+    const {events: evsRaw, tempo, rests: restsRaw} = parseMusicXML(xmlText, forcePartId);
+    const evs = isDemoMode ? truncateForDemoPreview(evsRaw) : evsRaw;
+    const rests = isDemoMode ? truncateForDemoPreview(restsRaw, evsRaw) : restsRaw;
+    loadEvents(evs, tempo, `Loaded "${fileNameForLabel}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''), rests);
+    lastLoadedXmlText = xmlText;
+    document.getElementById('saveNameInput').disabled = false;
+    document.getElementById('saveNameInput').value = fileNameForLabel.replace(/\.(xml|musicxml|mxl)$/i,'');
+    document.getElementById('saveSongBtn').disabled = false;
+    if (isDemoMode) recordDemoUpload();
+  }catch(err){
+    statusEl.className = 'status error';
+    statusEl.textContent = 'Could not read that file: ' + err.message;
+  }
+}
+
+// Multi-instrument files (band/orchestra arrangements) need a choice, not a silent guess
+// — the auto-matched instrument is usually right, but someone might genuinely want a
+// different part (another instrument's line they'd rather practice on their own horn).
+function showPartPicker(xmlText, fileNameForLabel, parts){
+  pendingUploadXml = xmlText;
+  pendingUploadLabel = fileNameForLabel;
+  const sel = document.getElementById('partPickerSelect');
+  sel.innerHTML = '';
+  parts.forEach(p=>{
+    const opt = document.createElement('option');
+    opt.value = p.id;
+    opt.textContent = p.name + (p.isAutoMatch ? ' (matches this instrument)' : '');
+    if (p.isAutoMatch) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  document.getElementById('partPickerNote').textContent = 'This file has ' + parts.length + ' instrument parts — pick which one to load.';
+  document.getElementById('partPicker').style.display = '';
+  statusEl.className = 'status';
+  statusEl.textContent = 'Choose a part below, then press Load.';
+}
+
+document.getElementById('partPickerLoadBtn').addEventListener('click', ()=>{
+  if (!pendingUploadXml) return;
+  const partId = document.getElementById('partPickerSelect').value;
+  finishLoadingXml(pendingUploadXml, pendingUploadLabel, partId);
+  document.getElementById('partPicker').style.display = 'none';
+  pendingUploadXml = null;
+  pendingUploadLabel = null;
+});
+
 document.getElementById('fileInput').addEventListener('change', (e)=>{
   const file = e.target.files[0];
   if (!file) return;
@@ -3271,6 +3427,7 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
     return;
   }
   stopPlayback(true);
+  document.getElementById('partPicker').style.display = 'none';
   if (/\.pdf$/i.test(file.name)) {
     statusEl.className = 'status error';
     statusEl.textContent = "PDF pages are images, not note data, so this can't read them directly. Import the PDF into a free tool like MuseScore (File → Import), then export it as MusicXML and upload that file here instead.";
@@ -3281,15 +3438,9 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
       .then(buf => extractXmlFromMxl(buf))
       .then(xmlText=>{
         try{
-          const {events: evsRaw, tempo, rests: restsRaw} = parseMusicXML(xmlText);
-          const evs = isDemoMode ? truncateForDemoPreview(evsRaw) : evsRaw;
-          const rests = isDemoMode ? truncateForDemoPreview(restsRaw, evsRaw) : restsRaw;
-          loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''), rests);
-          lastLoadedXmlText = xmlText;
-          document.getElementById('saveNameInput').disabled = false;
-          document.getElementById('saveNameInput').value = file.name.replace(/\.(xml|musicxml|mxl)$/i,'');
-          document.getElementById('saveSongBtn').disabled = false;
-          if (isDemoMode) recordDemoUpload();
+          const parts = listScoreParts(xmlText);
+          if (parts) showPartPicker(xmlText, file.name, parts);
+          else finishLoadingXml(xmlText, file.name);
         }catch(err){
           statusEl.className = 'status error';
           statusEl.textContent = 'Could not read that file: ' + err.message;
@@ -3303,15 +3454,9 @@ document.getElementById('fileInput').addEventListener('change', (e)=>{
   const reader = new FileReader();
   reader.onload = ()=>{
     try{
-      const {events: evsRaw, tempo, rests: restsRaw} = parseMusicXML(reader.result);
-      const evs = isDemoMode ? truncateForDemoPreview(evsRaw) : evsRaw;
-      const rests = isDemoMode ? truncateForDemoPreview(restsRaw, evsRaw) : restsRaw;
-      loadEvents(evs, tempo, `Loaded "${file.name}" — ${evs.length} notes, ${Math.round(tempo)} bpm.` + (isDemoMode && evs.length < evsRaw.length ? ' (demo preview: first ~40s of playing)' : ''), rests);
-      lastLoadedXmlText = reader.result;
-      document.getElementById('saveNameInput').disabled = false;
-      document.getElementById('saveNameInput').value = file.name.replace(/\.(xml|musicxml|mxl)$/i,'');
-      document.getElementById('saveSongBtn').disabled = false;
-      if (isDemoMode) recordDemoUpload();
+      const parts = listScoreParts(reader.result);
+      if (parts) showPartPicker(reader.result, file.name, parts);
+      else finishLoadingXml(reader.result, file.name);
     }catch(err){
       statusEl.className = 'status error';
       statusEl.textContent = 'Could not read that file: ' + err.message;
