@@ -1682,10 +1682,25 @@ function computeSongSpeedFactor(evs){
 // Slowing down practice speed spreads the bars out (easier to read at a glance) instead
 // of just scrolling the same fixed-width layout more slowly. Bounded so extreme speed
 // settings (very slow or very fast) don't produce absurdly wide or tiny bars.
+//
+// Fullscreen removes the normal ~1180px width cap entirely, so on a wide monitor the
+// highway can become dramatically wider than the layout was ever tuned for. Since
+// pxPerSec is a fixed px-per-second-of-music value, a wider container just reveals more
+// seconds of the song in one glance — it doesn't touch bar width at all, but a dense
+// passage suddenly has far less relative room, which reads as "compressed" even though
+// no bar actually shrank. Scaling pxPerSec up by how much wider than the normal baseline
+// the actual highway is keeps the amount of time visible at a glance roughly consistent
+// (or better) regardless of screen size, rather than degrading on a bigger screen.
+const REFERENCE_HIGHWAY_WIDTH = 1100; // ~ the normal-mode highway width the layout is tuned for
+function fullscreenWidthFactor(){
+  if (!document.body.classList.contains('is-fullscreen')) return 1;
+  const actualWidth = highwayShellEl.clientWidth || REFERENCE_HIGHWAY_WIDTH;
+  return Math.min(2.5, Math.max(1, actualWidth / REFERENCE_HIGHWAY_WIDTH));
+}
 function updateVisualScale(){
   const rate = parseFloat(speed.value) || 1;
   const scaleFactor = Math.min(2.5, Math.max(0.4, 1/rate));
-  pxPerSec = BASE_PX_PER_SEC * scaleFactor * songSpeedFactor;
+  pxPerSec = BASE_PX_PER_SEC * scaleFactor * songSpeedFactor * fullscreenWidthFactor();
 }
 let rebuildScaleTimer = null;
 function scheduleVisualRebuild(){
@@ -2532,11 +2547,19 @@ fullscreenBtn.addEventListener('click', ()=>{
     syncFullscreenBtnLabel();
     const el = document.getElementById('fsError');
     if (el && isCurrentlyFullscreen()) el.remove();
-    // lane heights/label widths change size in fullscreen CSS, so bar positions need a repaint
+    // Entering/exiting fullscreen changes both lane heights AND the highway's actual
+    // width — the latter feeds directly into pxPerSec now, so this needs a real rebuild
+    // (recomputed bar widths/positions), not just a repaint of the existing ones.
+    updateVisualScale();
+    buildBars();
     renderAt(currentTime());
   });
 });
-window.addEventListener('resize', ()=> renderAt(currentTime()));
+window.addEventListener('resize', ()=>{
+  updateVisualScale();
+  buildBars();
+  renderAt(currentTime());
+});
 // ---------- A-B loop ----------
 // Keeps the handles/highlight in sync with loopA/loopB, and quietly turns the loop off
 // if either point gets cleared — a half-set loop (only A, or only B) can't actually loop.
