@@ -1061,6 +1061,9 @@
           <option value="" selected disabled>Choose a feature…</option>
           <option value="palmKeys">Palm keys in action</option>
           <option value="trill">Trill notation</option>
+          <option value="chromatic">Full range, low to high (x4)</option>
+          <option value="pentatonic">Pentatonic scale</option>
+          <option value="jazzLicks">Jazz licks</option>
         </select>
       </div>
       <div class="demo-select-row" id="clarinetFeatureSelectRow" style="display:none;">
@@ -1068,6 +1071,9 @@
         <select id="clarinetFeatureSelect" class="demo-select">
           <option value="" selected disabled>Choose a feature…</option>
           <option value="crossingBreak">Crossing the break</option>
+          <option value="chromatic">Full range, low to high (x4)</option>
+          <option value="pentatonic">Pentatonic scale</option>
+          <option value="jazzLicks">Jazz licks</option>
         </select>
       </div>
       <div class="status" id="status"></div>
@@ -1485,6 +1491,55 @@ function demoSongScale(rootKey){
   const repeats = Math.max(1, Math.ceil(minDuration / passDuration));
   let seq = [];
   for (let i = 0; i < repeats; i++) seq = seq.concat(onePass);
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+
+// Every note the current instrument knows, low to high, one straight run — not up-then-
+// down like the major scale above. Repeated 4 times back to bottom each time, a classic
+// full-range warm-up/velocity exercise. Uses activeFingering() directly so it's always
+// exactly this instrument's real range (33 notes either way, just a different span).
+function demoSongChromaticFullRange(){
+  const q = 0.22;
+  const fullRange = Object.keys(activeFingering()).sort((a,b)=> keyToMidi(a) - keyToMidi(b));
+  let seq = [];
+  for (let i = 0; i < 4; i++) seq = seq.concat(fullRange);
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+
+// Major pentatonic: root, 2nd, 3rd, 5th, 6th (skips the 4th and 7th) — the 5-note scale
+// under most simple improvised melodies. Two octaves up then back down, repeated to a
+// comfortable practice length, same shape as the major scale generator above.
+const PENTATONIC_STEPS = [0,2,4,7,9,12,14,16,19,21,24];
+function generatePentatonicScale(rootKey){
+  const midiToKey = getMidiToKey();
+  const rootMidi = keyToMidi(rootKey);
+  const up = PENTATONIC_STEPS.map(step => midiToKey[rootMidi+step]).filter(Boolean);
+  const down = [...up].reverse().slice(1);
+  return [...up, ...down];
+}
+function demoSongPentatonic(){
+  const q = 0.35;
+  const onePass = generatePentatonicScale(instrumentFamily === 'clarinet' ? 'G3' : 'C4');
+  const passDuration = onePass.length * q;
+  const minDuration = 45;
+  const repeats = Math.max(1, Math.ceil(minDuration / passDuration));
+  let seq = [];
+  for (let i = 0; i < repeats; i++) seq = seq.concat(onePass);
+  return { events: seqToEvents(seq, q), tempo: 60/q };
+}
+
+// A few generic, widely-taught jazz vocabulary patterns — chord-tone arpeggios and
+// scale-degree formulas anyone's jazz method book covers, not a transcription of any
+// particular recording. Three phrases: a ii-V-I outlined by arpeggios, a blues-scale
+// lick, and a chromatic enclosure pattern (approaching a target note from above and
+// below), each repeated so the shape has a chance to sink in.
+function demoSongJazzLicks(){
+  const q = 0.3;
+  const iiVI = ['D4','F4','A4','C5', 'G4','B4','D5','F5', 'C5','E5','G5'];
+  const bluesLick = ['C4','Eb4','F4','F#4','G4','Bb4','G4','F4','Eb4','C4'];
+  const enclosure = ['D5','B4','C5', 'F5','D5','Eb5', 'A4','F#4','G4', 'C5'];
+  const onePass = [...iiVI, ...bluesLick, ...enclosure];
+  const seq = [...onePass, ...onePass, ...onePass];
   return { events: seqToEvents(seq, q), tempo: 60/q };
 }
 
@@ -3289,8 +3344,17 @@ const DEMO_SONGS = {
   minuet:      { fn: demoSongMinuet,    msg: 'Loaded: Minuet in G, BWV Anh. 114 (Petzold) — public domain.' },
 };
 const DEMO_FEATURES = {
-  palmKeys: { fn: demoSongWide,  msg: 'Loaded demo: a wider-range phrase — watch the low and palm key rows appear.' },
-  trill:    { fn: demoSongTrill, msg: 'Loaded demo: a held trill on F#4 — watch for the zigzag.' },
+  palmKeys:   { fn: demoSongWide,               msg: 'Loaded demo: a wider-range phrase — watch the low and palm key rows appear.' },
+  trill:      { fn: demoSongTrill,              msg: 'Loaded demo: a held trill on F#4 — watch for the zigzag.' },
+  chromatic:  { fn: demoSongChromaticFullRange, msg: 'Loaded demo: every note this horn knows, low to high, 4 times through.' },
+  pentatonic: { fn: demoSongPentatonic,         msg: 'Loaded demo: major pentatonic scale, two octaves up and back.' },
+  jazzLicks:  { fn: demoSongJazzLicks,          msg: 'Loaded demo: a ii-V-I arpeggio pattern, a blues-scale lick, and a chromatic enclosure — common jazz vocabulary, not a transcription of any particular recording.' },
+};
+const CLARINET_DEMO_FEATURES = {
+  crossingBreak: { fn: demoSongClarinetBreak,       msg: 'Loaded demo: crossing the break — G4 up through B4/C5 and back, the throat-tone-to-clarion transition.' },
+  chromatic:     { fn: demoSongChromaticFullRange,  msg: 'Loaded demo: every note this horn knows, low to high, 4 times through.' },
+  pentatonic:    { fn: demoSongPentatonic,          msg: 'Loaded demo: major pentatonic scale, two octaves up and back.' },
+  jazzLicks:     { fn: demoSongJazzLicks,           msg: 'Loaded demo: a ii-V-I arpeggio pattern, a blues-scale lick, and a chromatic enclosure — common jazz vocabulary, not a transcription of any particular recording.' },
 };
 const LIBRARY_SONGS = {
   hotCrossBuns:  { fn: demoSongHotCrossBuns,  msg: 'Loaded: Hot Cross Buns (traditional) — public domain.' },
@@ -3320,9 +3384,10 @@ document.getElementById('featureSelect').addEventListener('change', (e)=>{
   loadEvents(events, tempo, entry.msg);
 });
 document.getElementById('clarinetFeatureSelect').addEventListener('change', (e)=>{
-  if (e.target.value !== 'crossingBreak') return;
-  const {events, tempo} = demoSongClarinetBreak();
-  loadEvents(events, tempo, 'Loaded demo: crossing the break — G4 up through B4/C5 and back, the throat-tone-to-clarion transition.');
+  const entry = CLARINET_DEMO_FEATURES[e.target.value];
+  if (!entry) return;
+  const {events, tempo} = entry.fn();
+  loadEvents(events, tempo, entry.msg);
 });
 document.getElementById('scaleSelect').addEventListener('change', (e)=>{
   const root = e.target.value;
