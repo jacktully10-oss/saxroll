@@ -1668,11 +1668,15 @@ let songSpeedFactor = 1; // computed once per song load, constant for that song'
 function computeSongSpeedFactor(evs){
   const durs = evs.map(e => e.dur).filter(d => d > 0).sort((a,b) => a-b);
   if (durs.length < 4) return 1;
-  const p15 = durs[Math.floor(durs.length * 0.15)]; // typical short note, not the single shortest outlier
+  // A percentile that's too high (e.g. 15%) requires a fast passage to be a large chunk of
+  // the whole song before it registers at all — a real but brief run of fast notes (a few
+  // percent of the song) was invisible to it entirely. 5% is far more sensitive to a
+  // genuine local burst while still requiring more than a single one-off grace note to move it.
+  const p5 = durs[Math.floor(durs.length * 0.05)];
   const TARGET_MIN_WIDTH = 20; // px a typical short note should get from speed alone
-  const neededPxPerSec = TARGET_MIN_WIDTH / p15;
+  const neededPxPerSec = TARGET_MIN_WIDTH / p5;
   const factor = neededPxPerSec / BASE_PX_PER_SEC;
-  return Math.min(2.2, Math.max(1, factor)); // never slows a song down, caps how much it speeds up
+  return Math.min(2.8, Math.max(1, factor)); // never slows a song down, caps how much it speeds up
 }
 
 // Slowing down practice speed spreads the bars out (easier to read at a glance) instead
@@ -1916,8 +1920,26 @@ function buildBars(){
     fragments[l] = document.createDocumentFragment();
   });
   const auxMeta = activeAuxMeta(); // cached once, not re-resolved per note below
+
+  // The min-width floor exists so a genuinely brief note is still visible — but in a dense
+  // fast passage, flooring width alone can push a bar past where the NEXT note starts,
+  // making two distinct notes visually blur into one overlapping blob. That's worse than
+  // an honestly-short bar: capping against the real gap to the next event means the floor
+  // can widen a bar, but never far enough to overlap what comes right after it.
+  const GAP_PX = 3;
+  function barWidth(ev, nextEv){
+    const natural = ev.dur*pxPerSec - GAP_PX;
+    let width = Math.max(natural, 14);
+    if (nextEv) {
+      const availableGap = (nextEv.start - ev.start) * pxPerSec - GAP_PX;
+      width = Math.min(width, Math.max(4, availableGap));
+    }
+    return width;
+  }
+
   let barCount = 0;
-  events.forEach(ev=>{
+  events.forEach((ev, idx)=>{
+    const nextEv = events[idx+1];
     if (ev.trill) {
       const trillInfo = getTrillInfo(ev.key, ev.trillTarget);
       const allKeys = new Set([...trillInfo.baseFingering, ...trillInfo.targetFingering]);
@@ -1925,7 +1947,7 @@ function buildBars(){
         const openBar = document.createElement('div');
         openBar.className = 'open-bar';
         openBar.style.left = (ev.start*pxPerSec) + 'px';
-        openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 14) + 'px';
+        openBar.style.width = barWidth(ev, nextEv) + 'px';
         fragments['__open'].appendChild(openBar);
         barCount++;
         return;
@@ -1935,7 +1957,7 @@ function buildBars(){
         if (!track) return;
         const cls = BASE_LANE_CLASS[k] || (auxMeta[k] && auxMeta[k].className) || 'lh';
         const left = ev.start*pxPerSec;
-        const width = Math.max(ev.dur*pxPerSec - 3, 14);
+        const width = barWidth(ev, nextEv);
         if (trillInfo.toggleKeys.has(k)) {
           const zz = makeTrillZigzag(width, cls);
           zz.style.left = left + 'px';
@@ -1959,7 +1981,7 @@ function buildBars(){
       const openBar = document.createElement('div');
       openBar.className = 'open-bar';
       openBar.style.left = (ev.start*pxPerSec) + 'px';
-      openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 14) + 'px';
+      openBar.style.width = barWidth(ev, nextEv) + 'px';
       fragments['__open'].appendChild(openBar);
       barCount++;
       return;
@@ -1971,7 +1993,7 @@ function buildBars(){
       const bar = document.createElement('div');
       bar.className = 'bar ' + cls;
       bar.style.left = (ev.start*pxPerSec) + 'px';
-      bar.style.width = Math.max(ev.dur*pxPerSec - 3, 14) + 'px';
+      bar.style.width = barWidth(ev, nextEv) + 'px';
       fragments[k].appendChild(bar);
       barCount++;
     });
