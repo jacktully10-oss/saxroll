@@ -1925,7 +1925,7 @@ function buildBars(){
         const openBar = document.createElement('div');
         openBar.className = 'open-bar';
         openBar.style.left = (ev.start*pxPerSec) + 'px';
-        openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 9) + 'px';
+        openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 14) + 'px';
         fragments['__open'].appendChild(openBar);
         barCount++;
         return;
@@ -1935,7 +1935,7 @@ function buildBars(){
         if (!track) return;
         const cls = BASE_LANE_CLASS[k] || (auxMeta[k] && auxMeta[k].className) || 'lh';
         const left = ev.start*pxPerSec;
-        const width = Math.max(ev.dur*pxPerSec - 3, 9);
+        const width = Math.max(ev.dur*pxPerSec - 3, 14);
         if (trillInfo.toggleKeys.has(k)) {
           const zz = makeTrillZigzag(width, cls);
           zz.style.left = left + 'px';
@@ -1959,7 +1959,7 @@ function buildBars(){
       const openBar = document.createElement('div');
       openBar.className = 'open-bar';
       openBar.style.left = (ev.start*pxPerSec) + 'px';
-      openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 9) + 'px';
+      openBar.style.width = Math.max(ev.dur*pxPerSec - 3, 14) + 'px';
       fragments['__open'].appendChild(openBar);
       barCount++;
       return;
@@ -1971,7 +1971,7 @@ function buildBars(){
       const bar = document.createElement('div');
       bar.className = 'bar ' + cls;
       bar.style.left = (ev.start*pxPerSec) + 'px';
-      bar.style.width = Math.max(ev.dur*pxPerSec - 3, 9) + 'px';
+      bar.style.width = Math.max(ev.dur*pxPerSec - 3, 14) + 'px';
       fragments[k].appendChild(bar);
       barCount++;
     });
@@ -2312,7 +2312,11 @@ function scheduleUpcoming(){
   const horizon = nowSongTime + SCHEDULE_HORIZON;
   const TOL = 0.02;
   const SHORT = 0.18; // notes at/under this length benefit from being connected to neighbors
-  const connects = (a, b) => !a.trill && !b.trill && Math.abs((a.start+a.dur) - b.start) < TOL && (a.dur < SHORT || b.dur < SHORT);
+  // Two conditions connect a boundary: either side being short (so a fast passage doesn't
+  // sound like a machine-gun of separate hits), OR the notes being the same pitch, at ANY
+  // speed — a real player never fully stops the air for a repeated note, only the tongue
+  // interrupts briefly, whether that note is a sixteenth or a slow half note.
+  const connects = (a, b) => !a.trill && !b.trill && Math.abs((a.start+a.dur) - b.start) < TOL && (a.dur < SHORT || b.dur < SHORT || a.key === b.key);
 
   while (nextScheduleIdx < events.length && events[nextScheduleIdx].start < horizon) {
     const ev = events[nextScheduleIdx];
