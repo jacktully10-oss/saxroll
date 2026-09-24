@@ -1063,7 +1063,6 @@
           <option value="trill">Trill notation</option>
           <option value="chromatic">Full range, low to high (x4)</option>
           <option value="pentatonic">Pentatonic scale</option>
-          <option value="jazzLicks">Jazz licks</option>
         </select>
       </div>
       <div class="demo-select-row" id="clarinetFeatureSelectRow" style="display:none;">
@@ -1073,7 +1072,6 @@
           <option value="crossingBreak">Crossing the break</option>
           <option value="chromatic">Full range, low to high (x4)</option>
           <option value="pentatonic">Pentatonic scale</option>
-          <option value="jazzLicks">Jazz licks</option>
         </select>
       </div>
       <div class="status" id="status"></div>
@@ -1494,15 +1492,17 @@ function demoSongScale(rootKey){
   return { events: seqToEvents(seq, q), tempo: 60/q };
 }
 
-// Every note the current instrument knows, low to high, one straight run — not up-then-
-// down like the major scale above. Repeated 4 times back to bottom each time, a classic
-// full-range warm-up/velocity exercise. Uses activeFingering() directly so it's always
+// Every note the current instrument knows, low to high then back down — one full cycle —
+// repeated 4 times. Same up/down shape as the major scale generator above (peak note isn't
+// repeated back-to-back on the turnaround). Uses activeFingering() directly so it's always
 // exactly this instrument's real range (33 notes either way, just a different span).
 function demoSongChromaticFullRange(){
   const q = 0.22;
-  const fullRange = Object.keys(activeFingering()).sort((a,b)=> keyToMidi(a) - keyToMidi(b));
+  const up = Object.keys(activeFingering()).sort((a,b)=> keyToMidi(a) - keyToMidi(b));
+  const down = [...up].reverse().slice(1);
+  const oneCycle = [...up, ...down];
   let seq = [];
-  for (let i = 0; i < 4; i++) seq = seq.concat(fullRange);
+  for (let i = 0; i < 4; i++) seq = seq.concat(oneCycle);
   return { events: seqToEvents(seq, q), tempo: 60/q };
 }
 
@@ -1525,21 +1525,6 @@ function demoSongPentatonic(){
   const repeats = Math.max(1, Math.ceil(minDuration / passDuration));
   let seq = [];
   for (let i = 0; i < repeats; i++) seq = seq.concat(onePass);
-  return { events: seqToEvents(seq, q), tempo: 60/q };
-}
-
-// A few generic, widely-taught jazz vocabulary patterns — chord-tone arpeggios and
-// scale-degree formulas anyone's jazz method book covers, not a transcription of any
-// particular recording. Three phrases: a ii-V-I outlined by arpeggios, a blues-scale
-// lick, and a chromatic enclosure pattern (approaching a target note from above and
-// below), each repeated so the shape has a chance to sink in.
-function demoSongJazzLicks(){
-  const q = 0.3;
-  const iiVI = ['D4','F4','A4','C5', 'G4','B4','D5','F5', 'C5','E5','G5'];
-  const bluesLick = ['C4','Eb4','F4','F#4','G4','Bb4','G4','F4','Eb4','C4'];
-  const enclosure = ['D5','B4','C5', 'F5','D5','Eb5', 'A4','F#4','G4', 'C5'];
-  const onePass = [...iiVI, ...bluesLick, ...enclosure];
-  const seq = [...onePass, ...onePass, ...onePass];
   return { events: seqToEvents(seq, q), tempo: 60/q };
 }
 
@@ -3348,13 +3333,11 @@ const DEMO_FEATURES = {
   trill:      { fn: demoSongTrill,              msg: 'Loaded demo: a held trill on F#4 — watch for the zigzag.' },
   chromatic:  { fn: demoSongChromaticFullRange, msg: 'Loaded demo: every note this horn knows, low to high, 4 times through.' },
   pentatonic: { fn: demoSongPentatonic,         msg: 'Loaded demo: major pentatonic scale, two octaves up and back.' },
-  jazzLicks:  { fn: demoSongJazzLicks,          msg: 'Loaded demo: a ii-V-I arpeggio pattern, a blues-scale lick, and a chromatic enclosure — common jazz vocabulary, not a transcription of any particular recording.' },
 };
 const CLARINET_DEMO_FEATURES = {
   crossingBreak: { fn: demoSongClarinetBreak,       msg: 'Loaded demo: crossing the break — G4 up through B4/C5 and back, the throat-tone-to-clarion transition.' },
   chromatic:     { fn: demoSongChromaticFullRange,  msg: 'Loaded demo: every note this horn knows, low to high, 4 times through.' },
   pentatonic:    { fn: demoSongPentatonic,          msg: 'Loaded demo: major pentatonic scale, two octaves up and back.' },
-  jazzLicks:     { fn: demoSongJazzLicks,           msg: 'Loaded demo: a ii-V-I arpeggio pattern, a blues-scale lick, and a chromatic enclosure — common jazz vocabulary, not a transcription of any particular recording.' },
 };
 const LIBRARY_SONGS = {
   hotCrossBuns:  { fn: demoSongHotCrossBuns,  msg: 'Loaded: Hot Cross Buns (traditional) — public domain.' },
@@ -3399,10 +3382,14 @@ document.getElementById('scaleSelect').addEventListener('change', (e)=>{
 
 // Demo mode: served at /demo with no login required, uploads disabled, only the
 // built-in public-domain pieces available.
-// Demo mode (served at /demo, no login required): real uploads are allowed, but limited
-// to a small number per browser tab session (sessionStorage — clears when the tab closes,
-// deliberately lighter-touch than a hard account-level limit, since the goal here is
-// letting someone genuinely test their own song, not building an airtight paywall).
+// Demo mode (served at /demo, no login required): real uploads are allowed, limited to a
+// small number. This used to be tracked in sessionStorage, which reset the instant anyone
+// opened an incognito window or cleared storage — not a clever workaround, just what
+// private browsing already does by default, so it was giving away unlimited free uploads
+// to anyone who happened to do that for unrelated reasons. Now tracked server-side by IP
+// (see /api/demo-upload-check and /api/demo-upload-record in the Worker) — not perfect
+// (people sharing a network share a counter, a VPN still resets it), but a real barrier
+// instead of no barrier at all.
 const DEMO_UPLOAD_LIMIT = 3;
 // Demo preview: only show the first ~40s of actual playing, measured from when notes
 // actually start — not from the start of the file. A song with a long intro before the
@@ -3417,12 +3404,35 @@ function truncateForDemoPreview(evs, referenceEvs){
   return evs.filter(ev => ev.start >= firstNoteStart && ev.start < cutoff);
 }
 const isDemoMode = window.location.pathname === '/demo';
-function demoUploadsUsed(){
-  try { return parseInt(sessionStorage.getItem('saxhighway:demoUploads') || '0', 10); } catch(e) { return 0; }
+// null = not checked yet; treated as "allowed" so the UI isn't blocked before the initial
+// check resolves — by the time a user actually picks a file (a real action, seconds after
+// page load at the earliest) this has essentially always already resolved.
+let serverDemoRemaining = null;
+async function refreshDemoUploadStatus(){
+  if (!isDemoMode) return;
+  try {
+    const res = await fetch('/api/demo-upload-check');
+    const data = await res.json();
+    serverDemoRemaining = data.remaining;
+  } catch(e) {
+    // A network hiccup here shouldn't permanently block someone genuinely trying the
+    // product — fail open, same as the Worker does if the KV binding isn't set up yet.
+    serverDemoRemaining = DEMO_UPLOAD_LIMIT;
+  }
+  updateDemoUploadNotice();
 }
-function demoUploadsRemaining(){ return Math.max(0, DEMO_UPLOAD_LIMIT - demoUploadsUsed()); }
-function recordDemoUpload(){
-  try { sessionStorage.setItem('saxhighway:demoUploads', String(demoUploadsUsed()+1)); } catch(e) {}
+function demoUploadsRemaining(){
+  return serverDemoRemaining === null ? DEMO_UPLOAD_LIMIT : serverDemoRemaining;
+}
+async function recordDemoUpload(){
+  try {
+    const res = await fetch('/api/demo-upload-record', { method: 'POST' });
+    const data = await res.json();
+    serverDemoRemaining = data.remaining;
+  } catch(e) {
+    // Best-effort — if this fails we just don't know the exact remaining count until the
+    // next check; doesn't block anything already in progress.
+  }
   updateDemoUploadNotice();
 }
 function updateDemoUploadNotice(){
@@ -3432,10 +3442,11 @@ function updateDemoUploadNotice(){
   if (!noticeEl) return;
   noticeEl.style.display = '';
   if (remaining > 0) {
-    noticeEl.textContent = `Free demo: ${remaining} upload${remaining===1?'':'s'} left this visit.`;
+    noticeEl.textContent = `Free demo: ${remaining} upload${remaining===1?'':'s'} left.`;
     noticeEl.className = 'disclaimer neutral';
+    document.getElementById('fileInput').disabled = false;
   } else {
-    noticeEl.innerHTML = `You've used your free demo upload${DEMO_UPLOAD_LIMIT===1?'':'s'} for this visit. <a href="/">Subscribe</a> to upload as many songs as you want.`;
+    noticeEl.innerHTML = `You've used your free demo upload${DEMO_UPLOAD_LIMIT===1?'':'s'}. <a href="/">Subscribe</a> to upload as many songs as you want.`;
     noticeEl.className = 'disclaimer';
     document.getElementById('fileInput').disabled = true;
   }
@@ -3445,6 +3456,7 @@ if (isDemoMode) {
   document.getElementById('demoBanner').style.display = 'block';
   document.getElementById('sourceSongsBox').style.display = 'none';
   updateDemoUploadNotice();
+  refreshDemoUploadStatus();
 }
 
 async function extractXmlFromMxl(arrayBuffer){

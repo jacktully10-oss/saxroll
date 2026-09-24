@@ -3,6 +3,11 @@
 // Routes:
 //   GET  /                        -> landing page (or redirect to /app.html if already logged in)
 //   GET  /app.html                -> the real app, ONLY if a valid session cookie is present
+//   POST /api/omr-upload          -> sends a PDF to the self-hosted OMR service, returns a jobId. Requires a session.
+//   GET  /api/omr-status          -> polls an OMR job's status. Requires a session.
+//   GET  /api/omr-result          -> fetches a finished job's MusicXML, then deletes the job server-side. Requires a session.
+//   GET  /api/demo-upload-check   -> read-only: how many free demo uploads this IP has left. No session (demo is unauthenticated).
+//   POST /api/demo-upload-record  -> counts one demo upload against this IP. Called only after a real, successful parse.
 //   POST /api/create-checkout-session  -> starts a Stripe subscription checkout
 //   POST /api/checkout-xml-cache  -> one-time purchase: personal XML cache + 3 sourced songs
 //   POST /api/checkout-xml-request -> one-time purchase: 3 sourced songs
@@ -22,6 +27,21 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (url.pathname === "/api/omr-upload" && request.method === "POST") {
+      const session = await getSession(request, env);
+      if (!session) return jsonError("Not logged in.", 401);
+      return handleOmrUpload(request, env);
+    }
+    if (url.pathname === "/api/omr-status" && request.method === "GET") {
+      const session = await getSession(request, env);
+      if (!session) return jsonError("Not logged in.", 401);
+      return handleOmrStatus(request, env);
+    }
+    if (url.pathname === "/api/omr-result" && request.method === "GET") {
+      const session = await getSession(request, env);
+      if (!session) return jsonError("Not logged in.", 401);
+      return handleOmrResult(request, env, ctx);
+    }
     if (url.pathname === "/api/create-checkout-session" && request.method === "POST") {
       return handleCheckout(request, env);
     }
@@ -51,6 +71,12 @@ export default {
       });
     }
 
+    if (url.pathname === "/api/demo-upload-check" && request.method === "GET") {
+      return handleDemoUploadCheck(request, env);
+    }
+    if (url.pathname === "/api/demo-upload-record" && request.method === "POST") {
+      return handleDemoUploadRecord(request, env);
+    }
     if (url.pathname === "/demo") {
       // Public, no-login demo — same app file, but its own JS detects this path
       // and disables uploads / shows only the built-in public-domain pieces.
@@ -206,6 +232,152 @@ async function handleCheckoutComplete(request, env) {
 }
 
 // "Already subscribed?" email check.
+// ---------- OMR: PDF -> MusicXML via our own self-hosted Audiveris service ----------
+// The service itself (solfascribe-omr, MIT wrapper around AGPL-3.0 Audiveris) speaks a
+// plain 4-route REST API and ships with NO built-in authentication by design — its own
+// docs are explicit that whoever deploys it in front of the public internet must add
+// auth. That's done at the Caddy layer in front of the container (see deploy/Caddyfile):
+// Caddy checks this same Authorization header before anything reaches the OMR service,
+// so a request without the right secret never reaches Audiveris at all.
+//
+// Flow: upload -> {jobId} (202, async — conversion is genuinely seconds to minutes) ->
+// poll status -> once done, fetch the MusicXML for a movement -> hand that text straight
+// to the existing parseMusicXML() client-side, completely unchanged, since it already
+// expects exactly this.
+async function omrFetch(env, path, options) {
+  return fetch(`${env.OMR_SERVICE_URL}${path}`, {
+    ...options,
+    headers: { "Authorization": `Bearer ${env.OMR_SHARED_SECRET}`, ...(options && options.headers) },
+  });
+}
+
+async function handleOmrUpload(request, env) {
+  if (!env.OMR_SERVICE_URL || !env.OMR_SHARED_SECRET) {
+    return jsonError("PDF import isn't set up yet.", 503);
+  }
+  const pdfBytes = await request.arrayBuffer();
+  if (pdfBytes.byteLength === 0) return jsonError("That file came through empty — try uploading it again.", 400);
+  if (pdfBytes.byteLength > 40 * 1024 * 1024) return jsonError("That PDF is over the 40MB limit.", 413);
+
+  const form = new FormData();
+  form.append("file", new Blob([pdfBytes], { type: "application/pdf" }), "upload.pdf");
+
+  let omrResp;
+  try {
+    omrResp = await omrFetch(env, "/jobs", { method: "POST", body: form });
+  } catch (err) {
+    return jsonError("Couldn't reach the PDF conversion service — try again in a moment.", 502);
+  }
+  if (omrResp.status !== 202) {
+    const detail = await omrResp.text().catch(() => "");
+    return jsonError(`The conversion service couldn't accept that file (${omrResp.status}).${detail ? ' ' + detail.slice(0,200) : ''}`, 502);
+  }
+  const data = await omrResp.json();
+  return new Response(JSON.stringify({ jobId: data.jobId }), { headers: { "Content-Type": "application/json" } });
+}
+
+async function handleOmrStatus(request, env) {
+  if (!env.OMR_SERVICE_URL || !env.OMR_SHARED_SECRET) {
+    return jsonError("PDF import isn't set up yet.", 503);
+  }
+  const jobId = new URL(request.url).searchParams.get("job");
+  if (!jobId) return jsonError("Missing job id.", 400);
+
+  let omrResp;
+  try {
+    omrResp = await omrFetch(env, `/jobs/${encodeURIComponent(jobId)}`, {});
+  } catch (err) {
+    return jsonError("Couldn't reach the PDF conversion service — try again in a moment.", 502);
+  }
+  if (!omrResp.ok) {
+    return jsonError(`Couldn't check that job right now (${omrResp.status}).`, 502);
+  }
+  const data = await omrResp.json();
+  return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+}
+
+async function handleOmrResult(request, env, ctx) {
+  if (!env.OMR_SERVICE_URL || !env.OMR_SHARED_SECRET) {
+    return jsonError("PDF import isn't set up yet.", 503);
+  }
+  const params = new URL(request.url).searchParams;
+  const jobId = params.get("job");
+  const fileName = params.get("file");
+  if (!jobId || !fileName) return jsonError("Missing job id or file name.", 400);
+
+  let fileResp;
+  try {
+    fileResp = await omrFetch(env, `/jobs/${encodeURIComponent(jobId)}/files/${encodeURIComponent(fileName)}`, {});
+  } catch (err) {
+    return jsonError("Couldn't reach the PDF conversion service — try again in a moment.", 502);
+  }
+  if (!fileResp.ok) {
+    return jsonError(`Couldn't fetch that result (${fileResp.status}).`, 502);
+  }
+  const xmlText = await fileResp.text();
+
+  // Best-effort cleanup: delete the job (and its uploaded PDF) now that we have what we
+  // need, rather than waiting for the service's own 20-minute TTL sweeper. waitUntil so
+  // this actually gets a chance to finish instead of being cut off with the response.
+  if (ctx && ctx.waitUntil) {
+    ctx.waitUntil(omrFetch(env, `/jobs/${encodeURIComponent(jobId)}`, { method: "DELETE" }).catch(() => {}));
+  }
+
+  return new Response(xmlText, { headers: { "Content-Type": "application/vnd.recordare.musicxml+xml" } });
+}
+
+// ---------- Demo-mode upload limit, enforced server-side by IP ----------
+// The demo page's upload/parse happens entirely client-side (the file never touches this
+// Worker), so there's no natural server checkpoint to enforce a limit at all unless one is
+// deliberately added here. Before this, the only signal was sessionStorage, which resets
+// the moment someone opens an incognito window or clears storage — not an edge case, just
+// how private browsing works by default, so it was trivially bypassable by anyone, not
+// just someone deliberately trying to cheat it.
+//
+// IP-based tracking via KV is a real improvement but not a perfect one, worth being honest
+// about: people sharing a network (home wifi, office, mobile carrier NAT) share a counter,
+// and a VPN still resets it. It raises the bar from "open a private window" to "actively
+// route around IP tracking" — meaningfully higher, not airtight.
+const DEMO_UPLOAD_LIMIT = 3;
+const DEMO_UPLOAD_TTL_SECONDS = 30 * 24 * 60 * 60; // resets 30 days after first use, not a lifetime ban
+
+function demoLimitKey(request) {
+  const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+  return `demo_uploads:${ip}`;
+}
+
+async function handleDemoUploadCheck(request, env) {
+  if (!env.DEMO_LIMITS) {
+    // KV binding not set up yet — fail open (allow) rather than break the demo entirely,
+    // but this means the limit isn't actually enforced until DEMO_LIMITS is bound.
+    return new Response(JSON.stringify({ allowed: true, remaining: DEMO_UPLOAD_LIMIT, configured: false }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const raw = await env.DEMO_LIMITS.get(demoLimitKey(request));
+  const count = raw ? parseInt(raw, 10) : 0;
+  const remaining = Math.max(0, DEMO_UPLOAD_LIMIT - count);
+  return new Response(JSON.stringify({ allowed: remaining > 0, remaining, configured: true }), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+async function handleDemoUploadRecord(request, env) {
+  if (!env.DEMO_LIMITS) {
+    return new Response(JSON.stringify({ remaining: DEMO_UPLOAD_LIMIT, configured: false }), {
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  const key = demoLimitKey(request);
+  const raw = await env.DEMO_LIMITS.get(key);
+  const count = raw ? parseInt(raw, 10) : 0;
+  const newCount = count + 1;
+  await env.DEMO_LIMITS.put(key, String(newCount), { expirationTtl: DEMO_UPLOAD_TTL_SECONDS });
+  return new Response(JSON.stringify({ remaining: Math.max(0, DEMO_UPLOAD_LIMIT - newCount) }), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 async function handleLogin(request, env) {
   let body;
   try { body = await request.json(); } catch { return jsonError("Invalid request.", 400); }
@@ -232,20 +404,21 @@ async function hasActiveSubscription(email, env) {
   const custData = await custResp.json();
   if (!custResp.ok || !custData.data?.length) return false;
 
-  for (const customer of custData.data) {
+  // One Stripe customer is the common case, but an email can have more than one customer
+  // record (e.g. checked out more than once) — firing these in parallel instead of
+  // awaiting one at a time avoids paying N sequential round-trips for the rare case.
+  const results = await Promise.all(custData.data.map(async (customer) => {
     const subResp = await fetch(`https://api.stripe.com/v1/subscriptions?customer=${customer.id}&status=active&limit=10`, {
       headers: { "Authorization": `Bearer ${env.STRIPE_SECRET_KEY}` },
     });
     const subData = await subResp.json();
-    if (!subResp.ok || !subData.data?.length) continue;
+    if (!subResp.ok || !subData.data?.length) return false;
     // Confirm it's actually the SaxRoll weekly price, not just any active subscription
     // on the account — matters the moment you add a second product/price.
-    for (const sub of subData.data) {
-      const items = sub.items?.data || [];
-      if (items.some(item => item.price?.id === PRICE_ID)) return true;
-    }
-  }
-  return false;
+    const items = subData.data.flatMap(sub => sub.items?.data || []);
+    return items.some(item => item.price?.id === PRICE_ID);
+  }));
+  return results.some(Boolean);
 }
 
 // Opens the Stripe-hosted Customer Portal for the logged-in subscriber — self-serve
