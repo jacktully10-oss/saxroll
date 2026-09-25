@@ -348,9 +348,12 @@ function demoLimitKey(request) {
 
 async function handleDemoUploadCheck(request, env) {
   if (!env.DEMO_LIMITS) {
-    // KV binding not set up yet — fail open (allow) rather than break the demo entirely,
-    // but this means the limit isn't actually enforced until DEMO_LIMITS is bound.
-    return new Response(JSON.stringify({ allowed: true, remaining: DEMO_UPLOAD_LIMIT, configured: false }), {
+    // KV binding not set up — fail CLOSED. An unconfigured limit blocking real trial
+    // uploads until it's bound is a far safer default than the alternative: giving away
+    // unlimited free access to anyone who notices uploads still work with no cap. Same
+    // generic response shape as a genuinely exhausted limit, so there's nothing here to
+    // distinguish "not configured" from "already used your 3" and go looking for.
+    return new Response(JSON.stringify({ allowed: false, remaining: 0, configured: false }), {
       headers: { "Content-Type": "application/json" },
     });
   }
@@ -364,7 +367,7 @@ async function handleDemoUploadCheck(request, env) {
 
 async function handleDemoUploadRecord(request, env) {
   if (!env.DEMO_LIMITS) {
-    return new Response(JSON.stringify({ remaining: DEMO_UPLOAD_LIMIT, configured: false }), {
+    return new Response(JSON.stringify({ remaining: 0, configured: false }), {
       headers: { "Content-Type": "application/json" },
     });
   }

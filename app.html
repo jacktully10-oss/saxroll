@@ -185,6 +185,16 @@
   body.is-fullscreen .lane-label{ font-size:16px; width:120px; flex:0 0 120px; }
   body.is-fullscreen .now-line{ left:120px; }
   body.is-fullscreen .open-note-window{ left:120px; }
+  /* On a narrow screen, fullscreen's bigger labels (designed for reading at a distance
+     on a big display) cost real lookahead space instead — there's no "distance" to read
+     from on a phone, just less room to see upcoming notes, which is the opposite of the
+     point. Pull the label back down so mobile fullscreen doesn't lose highway width it
+     can't spare. */
+  @media (max-width: 600px){
+    body.is-fullscreen .lane-label{ font-size:13px; width:76px; flex:0 0 76px; }
+    body.is-fullscreen .now-line{ left:76px; }
+    body.is-fullscreen .open-note-window{ left:76px; }
+  }
   .fs-error{
     position:absolute; top:56px; right:12px; z-index:15; max-width:220px; text-align:right;
     font-size:11.5px; color:var(--oct); background:rgba(16,22,28,.9); padding:6px 10px; border-radius:6px;
@@ -1723,19 +1733,30 @@ function computeSongSpeedFactor(evs){
 // of just scrolling the same fixed-width layout more slowly. Bounded so extreme speed
 // settings (very slow or very fast) don't produce absurdly wide or tiny bars.
 //
-// Fullscreen removes the normal ~1180px width cap entirely, so on a wide monitor the
-// highway can become dramatically wider than the layout was ever tuned for. Since
-// pxPerSec is a fixed px-per-second-of-music value, a wider container just reveals more
-// seconds of the song in one glance — it doesn't touch bar width at all, but a dense
-// passage suddenly has far less relative room, which reads as "compressed" even though
-// no bar actually shrank. Scaling pxPerSec up by how much wider than the normal baseline
-// the actual highway is keeps the amount of time visible at a glance roughly consistent
-// (or better) regardless of screen size, rather than degrading on a bigger screen.
-const REFERENCE_HIGHWAY_WIDTH = 1100; // ~ the normal-mode highway width the layout is tuned for
+// Fullscreen removes the normal width cap entirely, so on a wide monitor the highway can
+// become dramatically wider than the layout was tuned for. Since pxPerSec is a fixed
+// px-per-second-of-music value, a wider container just reveals more seconds of the song
+// in one glance — it doesn't touch bar width at all, but a dense passage suddenly has far
+// less relative room, which reads as "compressed" even though no bar actually shrank.
+//
+// This used to compare against a fixed ~1100px desktop-sized reference — which meant on a
+// phone (where normal-mode width might only be ~350-400px), the ratio always clamped to a
+// no-op factor of 1, so the fix never actually engaged there at all. Meanwhile fullscreen's
+// taller lanes still applied regardless of screen size, so on mobile specifically, bars
+// kept the exact same width but sat in a visibly taller lane — looking squashed and short,
+// not because anything shrank, but because nothing grew to match. Using THIS device's own
+// captured normal-mode width as the reference fixes that on any screen size.
+let normalHighwayWidth = null;
+function captureNormalWidth(){
+  if (!document.body.classList.contains('is-fullscreen') && highwayShellEl.clientWidth > 0) {
+    normalHighwayWidth = highwayShellEl.clientWidth;
+  }
+}
 function fullscreenWidthFactor(){
   if (!document.body.classList.contains('is-fullscreen')) return 1;
-  const actualWidth = highwayShellEl.clientWidth || REFERENCE_HIGHWAY_WIDTH;
-  return Math.min(2.5, Math.max(1, actualWidth / REFERENCE_HIGHWAY_WIDTH));
+  if (!normalHighwayWidth) return 1; // no baseline captured yet -- don't guess, just don't scale
+  const actualWidth = highwayShellEl.clientWidth || normalHighwayWidth;
+  return Math.min(2.5, Math.max(1, actualWidth / normalHighwayWidth));
 }
 function updateVisualScale(){
   const rate = parseFloat(speed.value) || 1;
@@ -2570,6 +2591,7 @@ function showFsError(msg){
 }
 fullscreenBtn.addEventListener('click', ()=>{
   if (!isCurrentlyFullscreen()) {
+    captureNormalWidth(); // last chance to measure this device's actual normal-mode width before the layout changes
     const target = document.documentElement;
     const req = target.requestFullscreen || target.webkitRequestFullscreen;
     if (!req) { showFsError("This browser doesn't support fullscreen."); return; }
@@ -2596,6 +2618,7 @@ fullscreenBtn.addEventListener('click', ()=>{
   });
 });
 window.addEventListener('resize', ()=>{
+  captureNormalWidth(); // no-op while actually in fullscreen, updates the baseline otherwise
   updateVisualScale();
   buildBars();
   renderAt(currentTime());
@@ -3543,14 +3566,32 @@ document.getElementById('partPickerLoadBtn').addEventListener('click', ()=>{
   pendingUploadLabel = null;
 });
 
-document.getElementById('fileInput').addEventListener('change', (e)=>{
+document.getElementById('fileInput').addEventListener('change', async (e)=>{
   const file = e.target.files[0];
   if (!file) return;
-  if (isDemoMode && demoUploadsRemaining() <= 0) {
-    statusEl.className = 'status error';
-    statusEl.textContent = "You've used your free demo upload for this visit — subscribe for unlimited uploads.";
-    e.target.value = '';
-    return;
+  if (isDemoMode) {
+    // The real gate: a fresh check against the server right now, not whatever was cached
+    // from page load — that cached value could be stale, or never resolved if someone
+    // blocked the original request. Fails closed on ANY problem (network error, blocked
+    // request, anything) rather than assuming access is fine just because we can't prove
+    // otherwise — same generic message either way, nothing here to distinguish a real
+    // block from a technical one.
+    let ok = false;
+    try {
+      const res = await fetch('/api/demo-upload-check');
+      const data = await res.json();
+      ok = !!data.allowed;
+      if (data.remaining !== undefined) serverDemoRemaining = data.remaining;
+    } catch(err) {
+      ok = false;
+    }
+    if (!ok) {
+      statusEl.className = 'status error';
+      statusEl.textContent = "You've used your free demo upload for this visit — subscribe for unlimited uploads.";
+      updateDemoUploadNotice();
+      e.target.value = '';
+      return;
+    }
   }
   stopPlayback(true);
   document.getElementById('partPicker').style.display = 'none';
@@ -3707,6 +3748,7 @@ saveSongBtn.addEventListener('click', ()=>{
 });
 
 // initial paint
+captureNormalWidth();
 buildLegend([]);
 updateTempoDisplay();
 renderAt(0);
