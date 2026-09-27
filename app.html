@@ -1723,10 +1723,20 @@ function computeSongSpeedFactor(evs){
   // percent of the song) was invisible to it entirely. 5% is far more sensitive to a
   // genuine local burst while still requiring more than a single one-off grace note to move it.
   const p5 = durs[Math.floor(durs.length * 0.05)];
-  const TARGET_MIN_WIDTH = 20; // px a typical short note should get from speed alone
+  // 20px was barely wider than an ordinary note gets at the BASE speed with no boost at
+  // all — on a piece where a large share of the notes are this short throughout (not a
+  // brief run but the piece's whole character), the result was a wall of near-identical
+  // slivers, exactly the "impossible to play" complaint this exists to prevent. 34px is a
+  // genuinely readable pill shape. The tradeoff is fewer seconds of the song visible in the
+  // highway at once — intentional: what matters for playing a fast passage is a clear read
+  // on the next few notes, not a long but illegible look-ahead window.
+  const TARGET_MIN_WIDTH = 26;
   const neededPxPerSec = TARGET_MIN_WIDTH / p5;
   const factor = neededPxPerSec / BASE_PX_PER_SEC;
-  return Math.min(2.8, Math.max(1, factor)); // never slows a song down, caps how much it speeds up
+  // Raised from 2.8 -- a piece that's fast throughout (not just one brief run) needs to
+  // actually reach the factor this formula computes rather than being capped back down
+  // toward the same illegible width the formula exists to fix.
+  return Math.min(4.5, Math.max(1, factor));
 }
 
 // Slowing down practice speed spreads the bars out (easier to read at a glance) instead
@@ -2002,7 +2012,11 @@ function buildBars(){
   // making two distinct notes visually blur into one overlapping blob. That's worse than
   // an honestly-short bar: capping against the real gap to the next event means the floor
   // can widen a bar, but never far enough to overlap what comes right after it.
-  const GAP_PX = 3;
+  // Widening bars alone wasn't enough: the gap between one note and the next was a fixed
+  // 3px regardless of how much the bar itself grew, so two back-to-back fast notes stayed
+  // visually fused into one shape even at a much wider bar width. Doubling it actually
+  // separates consecutive notes instead of just making the fused shape bigger.
+  const GAP_PX = 6;
   function barWidth(ev, nextEv){
     const natural = ev.dur*pxPerSec - GAP_PX;
     let width = Math.max(natural, 14);
